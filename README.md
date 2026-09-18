@@ -47,17 +47,21 @@ package for that architecture.
 
 ## What it checks
 
-Per distro/arch leg (`scripts/test-install.sh`, run inside a container):
+Per distro/arch leg (`scripts/test-install.sh`, run inside a container) the test
+is just the four steps the documentation gives a user, with the signing that is
+supposed to protect each one asserted as it goes:
 
-| # | Check |
-|---|---|
-| 1 | The key at `https://repo.jotta.cloud/jotta.gpg` has the **pinned fingerprint** |
-| 2 | The repository metadata (`InRelease` / `repomd.xml.asc`) is **signed by that key** |
-| 3 | **Negative test** — a repo pinned to the *superseded* key is refused by apt/dnf/zypper |
-| 4 | `jotta-cli` installs with `gpgcheck` / `repo_gpgcheck` **left switched on** |
-| 5 | The installed artifact is the signed one (`rpm --checksig`, or `.deb` SHA256 vs. the signed `Packages` index) |
-| 6 | `jotta-cli`, `jottad`, `run_jottad` are present and the CLI version matches the package version |
-| 7 | `jottad` starts and `jotta-cli` reaches it over its unix socket |
+| Step | What it does | What it asserts |
+|---|---|---|
+| **1. Add the repository** | fetch the key, write the apt/dnf/zypper entry | the key has the **pinned fingerprint** |
+| **2. Update** | refresh the package lists | the metadata is **signed by that key** — verified independently, so a package manager that only warns cannot hide a bad signature |
+| **3. Install** | `install jotta-cli`, signature checking left on | it installs, and the bytes on disk are the signed ones (`rpm --checksig`, or `.deb` SHA256 against the signed `Packages` index) |
+| **4. Run it** | start `jottad`, talk to it with `jotta-cli` | the daemon answers, and `jotta-cli`, `jottad` and the package all report the same version |
+
+Then a **counter-check**: the same four steps, pinned to the *superseded* key,
+starting from a clean state (package removed, good repo and good key forgotten).
+It must fail, and must leave nothing installed. Without it, the run above would
+only prove that installing works — not that the signature is what made it work.
 
 Once per run, on the host (`scripts/check-keys.sh`):
 
@@ -95,13 +99,24 @@ instructions that fetch `/public.gpg` gets `NO_PUBKEY DD0330E4…` on
 `apt-get update`. Check #3 above is written to keep that failure mode pinned
 down rather than silently drifting.
 
-Two consequences worth watching for in the matrix results:
+Notes from actually running this:
 
-- **ed25519 needs a modern rpm.** Older rpm builds cannot verify EdDSA
-  signatures at all. If an RPM leg fails at `rpm --checksig` or at
-  `repo_gpgcheck`, that is the likely cause, not a broken repo.
+- **ed25519 needs rpm >= 4.15.** AlmaLinux 8 (rpm 4.14.3) cannot even
+  `rpm --import` the key — so the whole EL8 family (Alma 8, Rocky 8, RHEL 8,
+  CentOS 8) cannot verify this repository. openSUSE Leap 15.6 passes despite
+  also shipping 4.14.x, because SUSE backported the support. Debian 11 is past
+  EOL and its own repositories 404, so that leg cannot bootstrap either. Both
+  targets are in the matrix and both are expected to be red until that is
+  addressed.
 - The ed25519 key currently carries **no expiry**, so the expiry check is a
   no-op until that changes.
+- **`dnf5` exits 0 from `makecache` even when metadata signature verification
+  fails**, printing only `>>> repomd.xml GPG signature verification error`. The
+  negative test therefore asserts that the *install* is refused; asserting on
+  the refresh would silently pass on Fedora.
+- **Without a systemd user session, `jottad` listens on `127.0.0.1:14443`**, not
+  on the unix socket it uses under logind. The smoke test waits for
+  `jotta-cli version` to succeed rather than for a socket path to appear.
 
 ## Running it
 
@@ -120,18 +135,31 @@ suite:
 arm64 legs use GitHub's `ubuntu-24.04-arm` runners, which are free for public
 repositories.
 
+A warm leg takes about 40 seconds; a cold one is dominated by the container
+image pull (`rockylinux:9` is 244 MB, `almalinux:9` 200 MB, `fedora` 190 MB) and
+by the distro's own package metadata. In CI each leg has its own runner, so
+wall-clock is roughly the slowest leg rather than the sum.
+
 ### Locally
 
-Needs Docker.
+Needs Docker or Podman. `CONTAINER_RUNTIME` picks one; it defaults to `docker`
+to match the GitHub runners, and podman works rootless.
 
 ```sh
-# host-side key and metadata audit, no container
+# the whole matrix, plus the grid at the end
+scripts/run-all.sh                  # broad tier
+scripts/run-all.sh core             # the four quick legs
+JOBS=3 scripts/run-all.sh all       # three at a time, including emulated legs
+
+CONTAINER_RUNTIME=podman scripts/run-all.sh core
+
+# host-side key and metadata audit, no container at all
 scripts/check-keys.sh
 
 # one distro leg
 IMAGE=debian:12 PLATFORM=linux/amd64 scripts/run-target.sh
 
-# an emulated leg
+# an emulated leg (needs binfmt handlers; run-all.sh skips these if absent)
 IMAGE=debian:12 PLATFORM=linux/arm/v7 NEEDS_QEMU=1 scripts/run-target.sh
 
 # render what came out
@@ -150,6 +178,7 @@ scripts/update-readme.sh results README.md
 matrix.json                            the targets, one object per leg
 scripts/common.sh                      repo facts, logging, check/record, gpg helpers
 scripts/check-keys.sh                  host-side key + metadata audit
+scripts/run-all.sh                     host-side: run the whole matrix locally
 scripts/run-target.sh                  host-side: run one leg in a container
 scripts/test-install.sh                in-container: install and verify
 scripts/report.sh                      results.tsv -> Markdown (grid / failures / detail)
