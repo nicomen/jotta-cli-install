@@ -32,7 +32,19 @@ cell() { printf '%s' "$1" | tr '\n|' '  ' | sed 's/`/'"'"'/g' | cut -c1-200; }
 leg_status() {
   local file="$1/$2/results.tsv"
   [ -s "$file" ] || { printf 'missing\n'; return; }
-  if cut -f2 "$file" | grep -qx fail; then printf 'fail\n'; else printf 'pass\n'; fi
+  local fails passes
+  fails="$(cut -f2 "$file" | grep -cx fail)"
+  passes="$(cut -f2 "$file" | grep -cx pass)"
+  if [ "$fails" -gt 0 ]; then
+    printf 'fail\n'
+  elif [ "$passes" -gt 0 ]; then
+    printf 'pass\n'
+  else
+    # Zero of both: the leg died before any check() ran (e.g. in bootstrap) and
+    # only left "info" rows behind, or crashed hard enough to leave nothing at
+    # all. Either way this is not a pass.
+    printf 'fail\n'
+  fi
 }
 
 status_icon() {
@@ -139,6 +151,19 @@ render_one() {
   while IFS=$'\t' read -r name status _; do
     case "$status" in pass) passed=$((passed+1)) ;; fail) failed=$((failed+1)) ;; esac
   done < "$file"
+
+  # Zero pass and zero fail means the leg died before any check() ran (only
+  # "info" rows were recorded) — that is a crash, not a clean pass.
+  if [ "$failed" -eq 0 ] && [ "$passed" -eq 0 ]; then
+    out "<details open>"
+    out "<summary>❓ <b>${title}</b> — no checks ran</summary>"
+    out ""
+    out "The job died before recording any pass or fail — see its log."
+    out ""
+    out "</details>"
+    out ""
+    return 1
+  fi
 
   local icon="✅" open_attr=""
   if [ "$failed" -gt 0 ]; then

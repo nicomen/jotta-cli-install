@@ -37,7 +37,10 @@ JOTTA_KEY_URL="${JOTTA_KEY_URL:-${JOTTA_HOST}${JOTTA_KEY_PATH}}"
 log()  { printf '%s\n' "$*"; }
 info() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 warn() { printf '  !! %s\n' "$*" >&2; }
-die()  { printf '  XX %s\n' "$*" >&2; exit 1; }
+# A fatal error must leave a trace in the results, not just on stderr — a
+# results.tsv with zero pass/fail rows (the script died before any check())
+# is otherwise indistinguishable from "every check passed."
+die()  { printf '  XX %s\n' "$*" >&2; record_result "fatal error" fail "$*"; exit 1; }
 
 # Collapse multi-line command output into one short line for the TSV report.
 _oneline() { tr '\n' ' ' | tr -s ' ' | cut -c1-400; }
