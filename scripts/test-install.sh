@@ -192,8 +192,10 @@ use_debian_archive_if_eol() {
   case "$version" in ''|*[!0-9]*) return 0 ;; esac
   [ "$version" -le "${JOTTA_DEBIAN_EOL_BEFORE:-11}" ] || return 0
 
-  note "apt sources" "Debian ${version} is EOL — using archive.debian.org"
-  sed -i -e 's|[a-z.]*\.debian\.org/debian-security|archive.debian.org/debian-security|g' \
+  note "apt sources" "Debian ${version} is EOL — using archive.debian.org (security.debian.org for -security)"
+  # archive.debian.org never mirrored debian-security at all; that suite stays
+  # on security.debian.org even after the release itself moves to archive.
+  sed -i -e 's|[a-z.]*\.debian\.org/debian-security|security.debian.org/debian-security|g' \
          -e 's|deb\.debian\.org/debian|archive.debian.org/debian|g' \
          /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null
   # Archived Release files are long past their Valid-Until date.
