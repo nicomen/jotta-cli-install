@@ -14,15 +14,17 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 | Distro | amd64 | arm64 | armhf | i386 |
 |---|:-:|:-:|:-:|:-:|
-| Debian 12 (bookworm) | ❌ | ❌ | ⏳ | ⏳ |
-| Debian 13 (trixie) | ❌ | ❌ | ⏳ | ⏳ |
-| Ubuntu 22.04 LTS | ❌ | ❌ | · | · |
-| Ubuntu 24.04 LTS | ❌ | ❌ | · | · |
-| Ubuntu 26.04 LTS | ❌ | ❌ | · | · |
-| Fedora (latest) | ❌ | ❌ | · | · |
-| Rocky Linux 9 | ❌ | ❌ | · | · |
-| AlmaLinux 9 | ❌ | ❌ | · | · |
-| openSUSE Leap 15.6 | ❌ | ❌ | · | · |
+| Debian 11 (bullseye) | ✅ | ✅ | ⏳ | ⏳ |
+| Debian 12 (bookworm) | ✅ | ✅ | ⏳ | ⏳ |
+| Debian 13 (trixie) | ✅ | ✅ | ⏳ | ⏳ |
+| Ubuntu 22.04 LTS | ✅ | ✅ | · | · |
+| Ubuntu 24.04 LTS | ✅ | ✅ | · | · |
+| Ubuntu 26.04 LTS | ✅ | ✅ | · | · |
+| Fedora (latest) | ✅ | ✅ | · | · |
+| Rocky Linux 9 | ✅ | ✅ | · | · |
+| AlmaLinux 8 | ❌ | ❌ | · | · |
+| AlmaLinux 9 | ✅ | ✅ | · | · |
+| openSUSE Leap 15.6 | ✅ | ✅ | · | · |
 
 ✅ passed · ❌ failed · ⏳ not run in this tier · · not published for that architecture
 
@@ -30,13 +32,9 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 | Failing check | Legs |
 |---|---|
-| binaries: CLI version matches package version | almalinux-9-amd64, almalinux-9-arm64, debian-12-amd64, debian-12-arm64, debian-13-amd64, debian-13-arm64, fedora-latest-amd64, fedora-latest-arm64, opensuse-leap-15.6-amd64, opensuse-leap-15.6-arm64,  |
-| daemon: jotta-cli version talks to jottad | fedora-latest-amd64, fedora-latest-arm64 |
-| daemon: socket appears at /run/user/1000/jottad/jottad.socket | almalinux-9-amd64, almalinux-9-arm64, debian-12-amd64, debian-12-arm64, debian-13-amd64, debian-13-arm64, fedora-latest-amd64, fedora-latest-arm64, opensuse-leap-15.6-amd64, opensuse-leap-15.6-arm64,  |
-| daemon: socket appears at /run/user/1001/jottad/jottad.socket | ubuntu-24.04-amd64, ubuntu-24.04-arm64, ubuntu-26.04-amd64, ubuntu-26.04-arm64 |
-| negative: dnf makecache rejects the superseded key | fedora-latest-amd64, fedora-latest-arm64 |
+| repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64 |
 
-<sub>2026-09-18 13:21 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35349021095)</sub>
+<sub>2026-09-18 19:49 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35387692115)</sub>
 
 <!-- STATUS:END -->
 
