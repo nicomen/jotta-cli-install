@@ -34,7 +34,7 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 |---|---|
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64 |
 
-<sub>2026-09-18 19:49 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35387692115)</sub>
+<sub>2026-09-18 20:01 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35388712553)</sub>
 
 <!-- STATUS:END -->
 
