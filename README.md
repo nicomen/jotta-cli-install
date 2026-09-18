@@ -1,0 +1,157 @@
+# jotta-cli install & signing matrix
+
+A GitHub Actions matrix that installs [`jotta-cli`](https://docs.jottacloud.com/en/collections/178064-installing-the-command-line-tool)
+from the **public Jottacloud repositories**, exactly the way the documentation
+tells users to, and checks that the signing chain actually holds end to end.
+
+Nothing here needs credentials — no Jottacloud account, no secrets.
+
+## What it checks
+
+Per distro/arch leg (`scripts/test-install.sh`, run inside a container):
+
+| # | Check |
+|---|---|
+| 1 | The key at `https://repo.jotta.cloud/jotta.gpg` has the **pinned fingerprint** |
+| 2 | The repository metadata (`InRelease` / `repomd.xml.asc`) is **signed by that key** |
+| 3 | **Negative test** — a repo pinned to the *superseded* key is refused by apt/dnf/zypper |
+| 4 | `jotta-cli` installs with `gpgcheck` / `repo_gpgcheck` **left switched on** |
+| 5 | The installed artifact is the signed one (`rpm --checksig`, or `.deb` SHA256 vs. the signed `Packages` index) |
+| 6 | `jotta-cli`, `jottad`, `run_jottad` are present and the CLI version matches the package version |
+| 7 | `jottad` starts and `jotta-cli` reaches it over its unix socket |
+
+Once per run, on the host (`scripts/check-keys.sh`):
+
+- every published key path on **both** hosts (`repo.jotta.cloud`, `repo.jotta.us`)
+  resolves to the fingerprint it is supposed to
+- every suite's metadata (`debian`, `unstable`, `redhat`) verifies against the pinned key
+- the two hosts serve **byte-identical** metadata
+- the pinned key is not about to expire (default warning window: 90 days)
+- every URL the docs tell users to paste still resolves
+
+## Known state of the repositories
+
+Established while writing this (2026-09-18):
+
+| Thing | Value |
+|---|---|
+| Documented host | `https://repo.jotta.cloud` |
+| Legacy host (still live, same content) | `https://repo.jotta.us` |
+| Debian line | `deb [signed-by=/usr/share/keyrings/jotta.gpg] https://repo.jotta.cloud/debian debian main` |
+| Debian suites | `debian`, `unstable` |
+| Debian architectures | `amd64 arm64 armhf i386` |
+| RPM baseurl | `https://repo.jotta.cloud/redhat` |
+| RPM architectures | `x86_64 aarch64 armv7hl i386` |
+| Latest published version | `0.17.176206` |
+
+### Two keys are served, and only one of them is live
+
+| URL path | Key | Status |
+|---|---|---|
+| `/jotta.gpg` | ed25519 `DD03 30E4 86A5 5840 D37B DE77 068C ACA1 BBF9 6E71`, created 2026-03-13 | **signs everything currently published** |
+| `/public.gpg` | RSA4096 `E2CB EED2 DECB 21BF 686A B4B3 7DEF BCE9 947F 9F0F`, created 2017-10-23, expires 2030-10-08 | superseded — verifies nothing any more |
+
+Both paths are served from both hosts. Anything still following older
+instructions that fetch `/public.gpg` gets `NO_PUBKEY DD0330E4…` on
+`apt-get update`. Check #3 above is written to keep that failure mode pinned
+down rather than silently drifting.
+
+Two consequences worth watching for in the matrix results:
+
+- **ed25519 needs a modern rpm.** Older rpm builds cannot verify EdDSA
+  signatures at all. If an RPM leg fails at `rpm --checksig` or at
+  `repo_gpgcheck`, that is the likely cause, not a broken repo.
+- The ed25519 key currently carries **no expiry**, so the expiry check is a
+  no-op until that changes.
+
+## Running it
+
+### On GitHub
+
+Pushes, pull requests and a daily 05:17 UTC cron run the **broad** tier.
+`workflow_dispatch` lets you pick the tier and point the run at another host or
+suite:
+
+| Tier | Legs | What |
+|---|---|---|
+| `core` | 4 | Debian 12, Ubuntu 24.04, Fedora, Rocky 9 — amd64 only |
+| `broad` (default) | 18 | 9 distros × amd64 + arm64 |
+| `all` | 22 | broad, plus Debian armhf and i386 under QEMU |
+
+arm64 legs use GitHub's `ubuntu-24.04-arm` runners, which are free for public
+repositories.
+
+### Locally
+
+Needs Docker.
+
+```sh
+# host-side key and metadata audit, no container
+scripts/check-keys.sh
+
+# one distro leg
+IMAGE=debian:12 PLATFORM=linux/amd64 scripts/run-target.sh
+
+# an emulated leg
+IMAGE=debian:12 PLATFORM=linux/arm/v7 NEEDS_QEMU=1 scripts/run-target.sh
+
+# render what came out
+scripts/report.sh --all results
+```
+
+## Layout
+
+```
+.github/workflows/install-matrix.yml   plan -> install (matrix) -> summary
+matrix.json                            the targets, one object per leg
+scripts/common.sh                      repo facts, logging, check/record, gpg helpers
+scripts/check-keys.sh                  host-side key + metadata audit
+scripts/run-target.sh                  host-side: run one leg in a container
+scripts/test-install.sh                in-container: install and verify
+scripts/report.sh                      results.tsv -> Markdown
+```
+
+Every knob lives in one of two places: repository facts (hosts, key paths,
+pinned fingerprint, suite, package name) at the top of `scripts/common.sh`, and
+the target list in `matrix.json`.
+
+### Adding a target
+
+Append an object to `matrix.json`:
+
+```json
+{
+  "id": "debian-14-amd64",
+  "name": "Debian 14 / amd64",
+  "image": "debian:14",
+  "family": "debian",
+  "platform": "linux/amd64",
+  "arch": "amd64",
+  "runner": "ubuntu-24.04",
+  "qemu": false,
+  "tier": "broad"
+}
+```
+
+`tier` is one of `core`, `broad`, `qemu`. Set `qemu: true` (and leave `runner`
+as an amd64 runner) for any platform that needs binfmt emulation —
+`scripts/run-target.sh` installs the handlers and the rest of the leg is
+identical to a native one.
+
+### Pointing at a different repository
+
+```sh
+JOTTA_HOST=https://repo.jotta.us \
+JOTTA_DEB_SUITE=unstable \
+JOTTA_EXPECTED_FPR=<fingerprint> \
+  scripts/check-keys.sh
+```
+
+Any exported `JOTTA_*` variable is forwarded into the container by
+`scripts/run-target.sh`, so the same overrides work for a full leg.
+
+## When the signing key rotates
+
+Update `JOTTA_EXPECTED_FPR` (and, if the old key stays published,
+`JOTTA_LEGACY_FPR`) in `scripts/common.sh`. That is the only edit needed — the
+pin is referenced from everywhere else.

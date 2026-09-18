@@ -1,0 +1,246 @@
+{
+  "targets": [
+    {
+      "id": "debian-12-amd64",
+      "name": "Debian 12 (bookworm) / amd64",
+      "image": "debian:12",
+      "family": "debian",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "core"
+    },
+    {
+      "id": "debian-12-arm64",
+      "name": "Debian 12 (bookworm) / arm64",
+      "image": "debian:12",
+      "family": "debian",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "debian-13-amd64",
+      "name": "Debian 13 (trixie) / amd64",
+      "image": "debian:13",
+      "family": "debian",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "debian-13-arm64",
+      "name": "Debian 13 (trixie) / arm64",
+      "image": "debian:13",
+      "family": "debian",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "ubuntu-22.04-amd64",
+      "name": "Ubuntu 22.04 LTS / amd64",
+      "image": "ubuntu:22.04",
+      "family": "debian",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "ubuntu-22.04-arm64",
+      "name": "Ubuntu 22.04 LTS / arm64",
+      "image": "ubuntu:22.04",
+      "family": "debian",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "ubuntu-24.04-amd64",
+      "name": "Ubuntu 24.04 LTS / amd64",
+      "image": "ubuntu:24.04",
+      "family": "debian",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "core"
+    },
+    {
+      "id": "ubuntu-24.04-arm64",
+      "name": "Ubuntu 24.04 LTS / arm64",
+      "image": "ubuntu:24.04",
+      "family": "debian",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "ubuntu-26.04-amd64",
+      "name": "Ubuntu 26.04 LTS / amd64",
+      "image": "ubuntu:26.04",
+      "family": "debian",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "ubuntu-26.04-arm64",
+      "name": "Ubuntu 26.04 LTS / arm64",
+      "image": "ubuntu:26.04",
+      "family": "debian",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "fedora-latest-amd64",
+      "name": "Fedora (latest) / amd64",
+      "image": "fedora:latest",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "core"
+    },
+    {
+      "id": "fedora-latest-arm64",
+      "name": "Fedora (latest) / arm64",
+      "image": "fedora:latest",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "rockylinux-rockylinux-9-amd64",
+      "name": "Rocky Linux 9 / amd64",
+      "image": "rockylinux/rockylinux:9",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "core"
+    },
+    {
+      "id": "rockylinux-rockylinux-9-arm64",
+      "name": "Rocky Linux 9 / arm64",
+      "image": "rockylinux/rockylinux:9",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "almalinux-9-amd64",
+      "name": "AlmaLinux 9 / amd64",
+      "image": "almalinux:9",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "almalinux-9-arm64",
+      "name": "AlmaLinux 9 / arm64",
+      "image": "almalinux:9",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "opensuse-leap-15.6-amd64",
+      "name": "openSUSE Leap 15.6 / amd64",
+      "image": "opensuse/leap:15.6",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "opensuse-leap-15.6-arm64",
+      "name": "openSUSE Leap 15.6 / arm64",
+      "image": "opensuse/leap:15.6",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "debian-12-armhf",
+      "name": "Debian 12 (bookworm) / armhf",
+      "image": "debian:12",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "tier": "qemu"
+    },
+    {
+      "id": "debian-12-i386",
+      "name": "Debian 12 (bookworm) / i386",
+      "image": "debian:12",
+      "family": "debian",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "tier": "qemu"
+    },
+    {
+      "id": "debian-13-armhf",
+      "name": "Debian 13 (trixie) / armhf",
+      "image": "debian:13",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "tier": "qemu"
+    },
+    {
+      "id": "debian-13-i386",
+      "name": "Debian 13 (trixie) / i386",
+      "image": "debian:13",
+      "family": "debian",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "tier": "qemu"
+    }
+  ]
+}

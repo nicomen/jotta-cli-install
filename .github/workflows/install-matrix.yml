@@ -1,0 +1,148 @@
+name: install matrix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Daily, so a key rotation or a broken Release file shows up on its own.
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Which targets to run'
+        type: choice
+        default: broad
+        options:
+          - core    # 4 legs, amd64 only — quick smoke
+          - broad   # amd64 + arm64 across every distro family
+          - all     # broad, plus armhf and i386 under QEMU
+      host:
+        description: 'Repository host to test'
+        type: string
+        default: 'https://repo.jotta.cloud'
+      suite:
+        description: 'Debian suite'
+        type: choice
+        default: debian
+        options: [debian, unstable]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JOTTA_HOST: ${{ inputs.host || 'https://repo.jotta.cloud' }}
+  JOTTA_DEB_SUITE: ${{ inputs.suite || 'debian' }}
+
+jobs:
+  keys:
+    name: keys and metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit signing keys on every published host
+        id: audit
+        run: |
+          mkdir -p results/keys
+          JOTTA_RESULTS="$PWD/results/keys/results.tsv" scripts/check-keys.sh
+
+      - name: Report
+        if: always()
+        run: scripts/report.sh "Signing keys and repository metadata" results/keys/results.tsv || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-keys
+          path: results/
+
+  plan:
+    name: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+      count: ${{ steps.build.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select targets for tier "${{ inputs.tier || 'broad' }}"
+        id: build
+        env:
+          TIER: ${{ inputs.tier || 'broad' }}
+        run: |
+          set -euo pipefail
+          case "$TIER" in
+            core)  filter='.tier == "core"' ;;
+            broad) filter='.tier == "core" or .tier == "broad"' ;;
+            all)   filter='true' ;;
+            *)     echo "unknown tier: $TIER" >&2; exit 1 ;;
+          esac
+          matrix="$(jq -c "[.targets[] | select($filter)]" matrix.json)"
+          echo "matrix=$matrix"          >> "$GITHUB_OUTPUT"
+          echo "count=$(jq length <<<"$matrix")" >> "$GITHUB_OUTPUT"
+          jq -r '.[] | "- \(.name)  [\(.image) \(.platform)]"' <<<"$matrix" \
+            >> "$GITHUB_STEP_SUMMARY"
+
+  install:
+    name: ${{ matrix.target.name }}
+    needs: plan
+    runs-on: ${{ matrix.target.runner }}
+    timeout-minutes: ${{ matrix.target.qemu && 60 || 30 }}
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install and verify jotta-cli
+        env:
+          IMAGE: ${{ matrix.target.image }}
+          PLATFORM: ${{ matrix.target.platform }}
+          NEEDS_QEMU: ${{ matrix.target.qemu && '1' || '0' }}
+          OUTDIR: ${{ github.workspace }}/results/${{ matrix.target.id }}
+        run: scripts/run-target.sh
+
+      - name: Report
+        if: always()
+        run: |
+          scripts/report.sh "${{ matrix.target.name }}" \
+            "results/${{ matrix.target.id }}/results.tsv" || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-${{ matrix.target.id }}
+          path: results/
+          if-no-files-found: warn
+
+  summary:
+    name: summary
+    needs: [keys, install]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          path: results
+          merge-multiple: true
+
+      - name: Render combined report
+        run: |
+          echo "## jotta-cli install matrix" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          scripts/report.sh --all results
