@@ -8,11 +8,17 @@
 #
 #   IMAGE=debian:12 PLATFORM=linux/amd64 scripts/run-target.sh
 #
+# CONTAINER_RUNTIME selects the engine (default docker, as on GitHub runners);
+# set it to podman to drive the same leg rootless on a workstation.
+#
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/common.sh
 . "$HERE/common.sh"
+
+RUNTIME="${CONTAINER_RUNTIME:-docker}"
+command -v "$RUNTIME" >/dev/null 2>&1 || die "no container runtime: $RUNTIME not found"
 
 IMAGE="${IMAGE:?set IMAGE, e.g. debian:12}"
 PLATFORM="${PLATFORM:-linux/amd64}"
@@ -24,7 +30,15 @@ mkdir -p "$OUTDIR"
 
 if [ "$NEEDS_QEMU" = "1" ]; then
   info "Installing binfmt handlers for ${PLATFORM}"
-  docker run --rm --privileged tonistiigi/binfmt:latest --install all >/dev/null
+  "$RUNTIME" run --rm --privileged tonistiigi/binfmt:latest --install all >/dev/null
+fi
+
+# podman has no default registry for short names; docker assumes docker.io.
+if [ "$RUNTIME" = podman ]; then
+  case "$IMAGE" in
+    */*.*/*|localhost/*) ;;          # already fully qualified
+    *)                  IMAGE="docker.io/${IMAGE}" ;;
+  esac
 fi
 
 info "Running ${IMAGE} (${PLATFORM})"
@@ -39,7 +53,7 @@ while IFS='=' read -r var _; do
 done < <(printenv | grep '^JOTTA_' || true)
 
 exec timeout --signal=TERM --kill-after=60 "$TIMEOUT" \
-  docker run --rm \
+  "$RUNTIME" run --rm \
     --platform "$PLATFORM" \
     -v "$HERE:/opt/jotta-tests:ro" \
     -v "$OUTDIR:/out" \

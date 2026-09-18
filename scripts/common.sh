@@ -187,8 +187,13 @@ keyring_with() { # keyring_with <key-file>
   printf '%s\n' "$home"
 }
 
-# rpm architecture name for the current machine.
+# rpm architecture name for the current machine. rpm knows best; the uname
+# mapping is only a fallback for hosts without rpm.
 rpm_arch() {
+  if command -v rpm >/dev/null 2>&1; then
+    rpm --eval '%{_arch}'
+    return
+  fi
   case "$(uname -m)" in
     x86_64)          printf 'x86_64\n' ;;
     aarch64|arm64)   printf 'aarch64\n' ;;
@@ -196,4 +201,80 @@ rpm_arch() {
     i386|i486|i586|i686) printf 'i386\n' ;;
     *)               uname -m ;;
   esac
+}
+
+# ---------------------------------------------------------------------------
+# Bootstrap
+# ---------------------------------------------------------------------------
+
+# Install only the tools that are actually missing. Container images vary a lot
+# in what they ship, and a blanket install costs more time than the checks do.
+#
+#   ensure_commands apt curl:curl gpg:gnupg su:util-linux
+#
+ensure_commands() { # ensure_commands <pkg-mgr> <cmd:package>...
+  local mgr="$1"; shift
+  local missing=() entry cmd pkg
+
+  for entry in "$@"; do
+    cmd="${entry%%:*}"
+    pkg="${entry#*:}"
+    command -v "$cmd" >/dev/null 2>&1 || missing+=("$pkg")
+  done
+
+  # curl needs a CA bundle, and the minimal images do not always carry one.
+  if [ ! -e /etc/ssl/certs/ca-certificates.crt ] &&
+     [ ! -e /etc/pki/tls/certs/ca-bundle.crt ]; then
+    case "$mgr" in
+      apt|zypper) missing+=(ca-certificates) ;;
+      *)          missing+=(ca-certificates) ;;
+    esac
+  fi
+
+  if [ "${#missing[@]}" -eq 0 ]; then
+    note "bootstrap: packages installed" "none needed"
+    return 0
+  fi
+
+  note "bootstrap: packages installed" "${missing[*]}"
+
+  # Captured rather than streamed: package managers are chatty, and progress
+  # bars in the middle of the check list make the run hard to read. A failure
+  # here is fatal, so the output is not lost, only held back.
+  local out rc=0
+  case "$mgr" in
+    apt)
+      out="$(DEBIAN_FRONTEND=noninteractive \
+        apt-get install -y -qq --no-install-recommends "${missing[@]}" 2>&1)" || rc=$?
+      ;;
+    dnf|yum)
+      out="$("$mgr" -y -q install "${missing[@]}" 2>&1)" || rc=$?
+      ;;
+    zypper)
+      out="$(zypper --non-interactive --quiet install "${missing[@]}" 2>&1)" || rc=$?
+      ;;
+  esac
+  [ "$rc" -eq 0 ] || die "could not install ${missing[*]}: $(printf '%s' "$out" | _oneline)"
+}
+
+# Refresh a single apt sources list instead of every configured repository.
+# The base indices are already on disk from the bootstrap refresh, and
+# re-fetching them for each of three updates dominates a Debian leg.
+apt_update_repo() { # apt_update_repo <list-name, without .list>
+  apt-get update \
+    -o Dir::Etc::sourcelist="sources.list.d/$1.list" \
+    -o Dir::Etc::sourceparts="-" \
+    -o APT::Get::List-Cleanup="0"
+}
+
+# Architecture as the packaging system sees it. `uname -m` reports the kernel,
+# which says x86_64 inside a linux/386 container.
+pkg_arch() {
+  if command -v dpkg >/dev/null 2>&1; then
+    dpkg --print-architecture
+  elif command -v rpm >/dev/null 2>&1; then
+    rpm --eval '%{_arch}'
+  else
+    uname -m
+  fi
 }
