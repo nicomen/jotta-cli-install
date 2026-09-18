@@ -154,7 +154,7 @@ jobs:
 
       - name: Per-leg detail
         if: always()
-        run: scripts/report.sh --all results
+        run: scripts/report.sh --all results || true
 
       # The README carries the same grid so the repository front page shows the
       # last known state without opening a run. Only main and the nightly cron
