@@ -2,16 +2,16 @@
 #
 # Runs INSIDE a distro container as root.
 #
-# Installs jotta-cli from the public Jottacloud repository the way the official
-# documentation tells users to, with signature verification left switched on,
-# and proves that the signing actually holds:
+# This is the four steps the documentation tells a user to follow:
 #
-#   1. the published key has the pinned fingerprint
-#   2. the repository metadata is signed by that key
-#   3. a repo pinned to the *superseded* key is refused (negative test)
-#   4. the package installs with gpgcheck enabled
-#   5. the installed package carries a valid signature / matching digest
-#   6. the daemon starts and the CLI can talk to it
+#   1. add the repository (and its signing key)
+#   2. update the package lists
+#   3. install jotta-cli
+#   4. run it, and see that it worked
+#
+# Each step also asserts the signing that is supposed to protect it. A final
+# counter-check repeats the same four steps pinned to the superseded key and
+# requires them to fail — otherwise "the signature was checked" means nothing.
 #
 set -uo pipefail
 
@@ -22,15 +22,16 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-FAMILY=""          # debian | rpm
-PKG_MGR=""
-RPM_REPO_DIR=""    # zypper reads /etc/zypp/repos.d, dnf/yum /etc/yum.repos.d
+FAMILY=""        # debian | rpm
+PKG_MGR=""       # apt | dnf | yum | zypper
+RPM_REPO_DIR=""  # zypper reads /etc/zypp/repos.d, dnf and yum /etc/yum.repos.d
 
-# ---------------------------------------------------------------------------
-# Bootstrap
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Every apt/dnf/yum/zypper difference lives in this section, so the four steps
+# below read the same on every distro.
+# ===========================================================================
 
-bootstrap() {
+detect_platform() {
   PKG_MGR="$(detect_pkg_mgr)" || die "no supported package manager found"
   case "$PKG_MGR" in
     apt)     FAMILY=debian ;;
@@ -38,304 +39,390 @@ bootstrap() {
     dnf|yum) FAMILY=rpm; RPM_REPO_DIR=/etc/yum.repos.d ;;
   esac
   [ -n "$RPM_REPO_DIR" ] && mkdir -p "$RPM_REPO_DIR"
-
-  info "Target: $(os_pretty_name) [$(uname -m)] via ${PKG_MGR}"
-  note "os" "$(os_pretty_name)"
-  note "arch" "$(uname -m)"
-  note "pkg_mgr" "$PKG_MGR"
-
-  case "$PKG_MGR" in
-    apt)
-      export DEBIAN_FRONTEND=noninteractive
-      apt-get update -qq
-      apt-get install -y -qq --no-install-recommends \
-        curl gnupg ca-certificates apt-transport-https procps psmisc >/dev/null
-      ;;
-    dnf)
-      dnf -y -q install curl gnupg2 ca-certificates procps-ng psmisc shadow-utils >/dev/null
-      ;;
-    yum)
-      yum -y -q install curl gnupg2 ca-certificates procps-ng psmisc shadow-utils >/dev/null
-      ;;
-    zypper)
-      zypper --non-interactive --quiet refresh >/dev/null
-      zypper --non-interactive --quiet install curl gpg2 ca-certificates procps psmisc shadow >/dev/null
-      ;;
-  esac
+  return 0
 }
 
-# ---------------------------------------------------------------------------
-# 1. Key identity
-# ---------------------------------------------------------------------------
-
-fetch_keys() {
-  info "Signing keys"
-
-  check "key: ${JOTTA_KEY_URL} downloads" \
-    curl -fsSL --retry 3 --retry-delay 2 -o "$WORK/jotta.gpg" "$JOTTA_KEY_URL"
-  [ -s "$WORK/jotta.gpg" ] || die "could not download the signing key"
-
-  check "key: fingerprint is ${JOTTA_EXPECTED_FPR}" \
-    assert_key_fingerprint "$WORK/jotta.gpg"
-
-  note "key: uid" "$(gpg --show-keys --with-colons "$WORK/jotta.gpg" 2>/dev/null |
-    awk -F: '/^uid:/{print $10; exit}')"
-
-  # The superseded key, used below to prove that a wrong key is rejected.
-  curl -fsSL --retry 3 -o "$WORK/legacy.gpg" \
-    "${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}" 2>/dev/null || true
-
-  armor_key "$WORK/jotta.gpg" "$WORK/jotta.asc" ||
-    die "could not ASCII-armor the signing key"
-  if [ -s "$WORK/legacy.gpg" ]; then
-    armor_key "$WORK/legacy.gpg" "$WORK/legacy.asc" || true
-  fi
-}
-
-# ---------------------------------------------------------------------------
-# 2. Repository metadata signature (independent of the package manager)
-# ---------------------------------------------------------------------------
-
-verify_metadata() {
-  info "Repository metadata signature"
-
-  local home
-  home="$(keyring_with "$WORK/jotta.gpg")" || die "could not build verification keyring"
-
-  if [ "$FAMILY" = debian ]; then
-    local url="${JOTTA_HOST}/debian/dists/${JOTTA_DEB_SUITE}/InRelease"
-    check "metadata: InRelease downloads" \
-      curl -fsSL --retry 3 -o "$WORK/InRelease" "$url"
-    check "metadata: InRelease signed by pinned key" \
-      env GNUPGHOME="$home" bash -c \
-      'gpg --batch --verify "$1" >/dev/null 2>&1' _ "$WORK/InRelease"
-    note "metadata: signer" "$(GNUPGHOME="$home" signature_signer "$WORK/InRelease")"
-    note "metadata: date" "$(sed -n 's/^Date: //p' "$WORK/InRelease" | head -n1)"
-    note "metadata: architectures" \
-      "$(sed -n 's/^Architectures: //p' "$WORK/InRelease" | head -n1)"
-  else
-    local base="${JOTTA_HOST}${JOTTA_RPM_PATH}/repodata"
-    check "metadata: repomd.xml downloads" \
-      curl -fsSL --retry 3 -o "$WORK/repomd.xml" "$base/repomd.xml"
-    check "metadata: repomd.xml.asc downloads" \
-      curl -fsSL --retry 3 -o "$WORK/repomd.xml.asc" "$base/repomd.xml.asc"
-    check "metadata: repomd.xml signed by pinned key" \
-      env GNUPGHOME="$home" bash -c \
-      'gpg --batch --verify "$1" "$2" >/dev/null 2>&1' _ \
-      "$WORK/repomd.xml.asc" "$WORK/repomd.xml"
-    note "metadata: signer" \
-      "$(GNUPGHOME="$home" signature_signer "$WORK/repomd.xml.asc" "$WORK/repomd.xml")"
-  fi
-
-  rm -rf "$home"
-}
-
-# ---------------------------------------------------------------------------
-# 3. Negative test: the superseded key must NOT validate the repository
-# ---------------------------------------------------------------------------
-
-negative_test() {
-  info "Negative test: repo pinned to the superseded key must be refused"
-
-  if [ ! -s "$WORK/legacy.gpg" ]; then
-    note "negative: skipped" "legacy key ${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY} not available"
-    return 0
-  fi
-
+# Write a repository definition that trusts exactly one key.
+repo_add() { # repo_add <repo-id> <binary-key-file>
+  local id="$1" key="$2"
   case "$FAMILY" in
     debian)
       mkdir -p /etc/apt/sources.list.d
-      install -D -m644 "$WORK/legacy.gpg" /usr/share/keyrings/jotta-legacy.gpg
-      printf 'deb [signed-by=/usr/share/keyrings/jotta-legacy.gpg] %s/debian %s %s\n' \
-        "$JOTTA_HOST" "$JOTTA_DEB_SUITE" "$JOTTA_DEB_COMPONENT" \
-        > /etc/apt/sources.list.d/jotta-cli-legacy.list
-      check_fails "negative: apt-get update rejects the superseded key" \
-        apt-get update
-      rm -f /etc/apt/sources.list.d/jotta-cli-legacy.list /usr/share/keyrings/jotta-legacy.gpg
-      apt-get update -qq
+      install -D -m644 "$key" "/usr/share/keyrings/${id}.gpg"
+      printf 'deb [signed-by=/usr/share/keyrings/%s.gpg] %s/debian %s %s\n' \
+        "$id" "$JOTTA_HOST" "$JOTTA_DEB_SUITE" "$JOTTA_DEB_COMPONENT" \
+        > "/etc/apt/sources.list.d/${id}.list"
       ;;
     rpm)
-      [ -s "$WORK/legacy.asc" ] || { note "negative: skipped" "could not armor legacy key"; return 0; }
-      rpm --import "$WORK/legacy.asc" 2>/dev/null || true
-      write_rpm_repo "$RPM_REPO_DIR/jotta-cli-legacy.repo" jotta-cli-legacy \
-        "file://$WORK/legacy.asc"
-      case "$PKG_MGR" in
-        dnf|yum) check_fails "negative: ${PKG_MGR} makecache rejects the superseded key" \
-                   "$PKG_MGR" -y --disablerepo='*' --enablerepo=jotta-cli-legacy makecache ;;
-        zypper)  check_fails "negative: zypper refresh rejects the superseded key" \
-                   zypper --non-interactive refresh jotta-cli-legacy ;;
-      esac
-      rm -f "$RPM_REPO_DIR/jotta-cli-legacy.repo"
-      ;;
-  esac
-}
-
-# ---------------------------------------------------------------------------
-# 4. Install, with signature checking on
-# ---------------------------------------------------------------------------
-
-write_rpm_repo() { # write_rpm_repo <file> <id> <gpgkey-url>
-  cat > "$1" <<EOF
-[$2]
-name=Jottacloud CLI ($2)
+      # rpm and friends want the key ASCII-armored.
+      armor_key "$key" "$WORK/${id}.asc" || return 1
+      rpm --import "$WORK/${id}.asc" || return 1
+      cat > "${RPM_REPO_DIR}/${id}.repo" <<EOF
+[${id}]
+name=Jottacloud CLI (${id})
 baseurl=${JOTTA_HOST}${JOTTA_RPM_PATH}
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
-gpgkey=$3
+gpgkey=file://${WORK}/${id}.asc
 EOF
-}
-
-install_package() {
-  info "Install ${JOTTA_PACKAGE}"
-
-  case "$FAMILY" in
-    debian)
-      mkdir -p /etc/apt/sources.list.d
-      install -D -m644 "$WORK/jotta.gpg" /usr/share/keyrings/jotta.gpg
-      printf 'deb [signed-by=/usr/share/keyrings/jotta.gpg] %s/debian %s %s\n' \
-        "$JOTTA_HOST" "$JOTTA_DEB_SUITE" "$JOTTA_DEB_COMPONENT" \
-        > /etc/apt/sources.list.d/jotta-cli.list
-      check "install: apt-get update accepts the repository" apt-get update
-      check "install: apt-get install ${JOTTA_PACKAGE}" \
-        apt-get install -y --no-install-recommends "$JOTTA_PACKAGE"
-      ;;
-    rpm)
-      rpm --import "$WORK/jotta.asc"
-      write_rpm_repo "$RPM_REPO_DIR/jotta-cli.repo" jotta-cli "file://$WORK/jotta.asc"
-      case "$PKG_MGR" in
-        dnf|yum)
-          check "install: ${PKG_MGR} makecache accepts the repository" \
-            "$PKG_MGR" -y --disablerepo='*' --enablerepo=jotta-cli makecache
-          check "install: ${PKG_MGR} install ${JOTTA_PACKAGE}" \
-            "$PKG_MGR" -y install "$JOTTA_PACKAGE"
-          ;;
-        zypper)
-          check "install: zypper refresh accepts the repository" \
-            zypper --non-interactive refresh jotta-cli
-          check "install: zypper install ${JOTTA_PACKAGE}" \
-            zypper --non-interactive install "$JOTTA_PACKAGE"
-          ;;
-      esac
       ;;
   esac
 }
 
-# ---------------------------------------------------------------------------
-# 5. The installed artifact really is the signed one
-# ---------------------------------------------------------------------------
+repo_refresh() { # repo_refresh <repo-id>
+  case "$PKG_MGR" in
+    apt)    apt_update_repo "$1" ;;
+    dnf)    dnf -y --repo="$1" makecache ;;
+    yum)    yum -y --disablerepo='*' --enablerepo="$1" makecache ;;
+    zypper) zypper --non-interactive refresh "$1" ;;
+  esac
+}
 
-verify_installed_package() {
-  info "Installed package integrity"
+# Install the package. Only the jotta repository provides it, so whichever
+# repository is configured at the time is the one under test.
+repo_install() {
+  case "$PKG_MGR" in
+    apt)    apt-get install -y --no-install-recommends "$JOTTA_PACKAGE" ;;
+    dnf|yum) "$PKG_MGR" -y install "$JOTTA_PACKAGE" ;;
+    zypper) zypper --non-interactive install "$JOTTA_PACKAGE" ;;
+  esac
+}
 
-  local pkg_version=""
+repo_uninstall() {
+  case "$PKG_MGR" in
+    apt)     apt-get remove -y --purge "$JOTTA_PACKAGE" ;;
+    dnf|yum) "$PKG_MGR" -y remove "$JOTTA_PACKAGE" ;;
+    zypper)  zypper --non-interactive remove "$JOTTA_PACKAGE" ;;
+  esac
+}
+
+# Forget a repository completely: its definition, its key, and any metadata
+# already cached from it. Without this the next step could quietly succeed
+# using what the previous one left behind.
+repo_forget() { # repo_forget <repo-id> <key-fingerprint>
+  local id="$1" fpr="$2" short
   case "$FAMILY" in
     debian)
-      pkg_version="$(dpkg-query -W -f='${Version}' "$JOTTA_PACKAGE" 2>/dev/null)"
+      rm -f "/etc/apt/sources.list.d/${id}.list" "/usr/share/keyrings/${id}.gpg"
+      rm -f /var/lib/apt/lists/*jotta*
+      ;;
+    rpm)
+      rm -f "${RPM_REPO_DIR}/${id}.repo"
+      case "$PKG_MGR" in
+        dnf|yum) "$PKG_MGR" clean metadata >/dev/null 2>&1 ;;
+        zypper)  zypper --non-interactive clean --metadata >/dev/null 2>&1 ;;
+      esac
+      # rpm names imported keys after the last 8 hex of the key id.
+      short="$(printf '%s' "${fpr: -8}" | tr 'A-Z' 'a-z')"
+      rpm -qa 'gpg-pubkey*' 2>/dev/null | grep -i -- "$short" |
+        xargs -r rpm -e 2>/dev/null
+      ;;
+  esac
+  return 0
+}
 
-      # Debian packages are not individually signed; trust flows from the
-      # signed InRelease -> Packages -> SHA256 of the .deb. Check that chain.
-      # apt-get download drops privileges to _apt, so it needs a directory
-      # that user can write to.
+package_installed() {
+  case "$FAMILY" in
+    debian) dpkg-query -W -f='${Status}' "$JOTTA_PACKAGE" 2>/dev/null |
+              grep -q '^install ok installed' ;;
+    rpm)    rpm -q "$JOTTA_PACKAGE" >/dev/null 2>&1 ;;
+  esac
+}
+
+installed_version() {
+  case "$FAMILY" in
+    debian) dpkg-query -W -f='${Version}' "$JOTTA_PACKAGE" 2>/dev/null ;;
+    rpm)    rpm -q --qf '%{VERSION}-%{RELEASE}' "$JOTTA_PACKAGE" 2>/dev/null ;;
+  esac
+}
+
+# URL of the signed metadata file, and of the data it signs (empty when the
+# signature is inline, as in a Debian InRelease).
+metadata_signature_url() {
+  case "$FAMILY" in
+    debian) printf '%s/debian/dists/%s/InRelease\n' "$JOTTA_HOST" "$JOTTA_DEB_SUITE" ;;
+    rpm)    printf '%s%s/repodata/repomd.xml.asc\n' "$JOTTA_HOST" "$JOTTA_RPM_PATH" ;;
+  esac
+}
+
+# ===========================================================================
+# Step 0 — make the container able to run the test at all
+# ===========================================================================
+
+bootstrap() {
+  detect_platform
+
+  info "Target: $(os_pretty_name) [$(pkg_arch)] via ${PKG_MGR}"
+  note "os" "$(os_pretty_name)"
+  note "arch" "$(pkg_arch) (kernel: $(uname -m))"
+  note "pkg_mgr" "$PKG_MGR"
+
+  # One metadata refresh, then install only the tools that are missing.
+  case "$PKG_MGR" in
+    apt)
+      export DEBIAN_FRONTEND=noninteractive
+      use_debian_archive_if_eol
+      apt-get update -qq
+      ensure_commands apt \
+        curl:curl gpg:gnupg ps:procps killall:psmisc su:util-linux useradd:passwd
+      ;;
+    dnf|yum)
+      ensure_commands "$PKG_MGR" \
+        curl:curl gpg:gnupg2 ps:procps-ng killall:psmisc \
+        su:util-linux useradd:shadow-utils
+      ;;
+    zypper)
+      zypper --non-interactive --quiet refresh >/dev/null
+      ensure_commands zypper \
+        curl:curl gpg:gpg2 ps:procps killall:psmisc su:util-linux useradd:shadow
+      ;;
+  esac
+}
+
+# A Debian release past EOL is served only from archive.debian.org. deb.debian.org
+# keeps advertising indices whose .deb files have been removed, so apt resolves
+# packages and then 404s on the download.
+use_debian_archive_if_eol() {
+  local id version
+  # shellcheck disable=SC1091
+  . /etc/os-release 2>/dev/null || return 0
+  id="${ID:-}"; version="${VERSION_ID:-}"
+  [ "$id" = debian ] || return 0
+  case "$version" in ''|*[!0-9]*) return 0 ;; esac
+  [ "$version" -le "${JOTTA_DEBIAN_EOL_BEFORE:-11}" ] || return 0
+
+  note "apt sources" "Debian ${version} is EOL — using archive.debian.org"
+  sed -i -e 's|[a-z.]*\.debian\.org/debian-security|archive.debian.org/debian-security|g' \
+         -e 's|deb\.debian\.org/debian|archive.debian.org/debian|g' \
+         /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null
+  # Archived Release files are long past their Valid-Until date.
+  echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99jotta-archive
+  return 0
+}
+
+# ===========================================================================
+# Step 1 — add the repository
+# ===========================================================================
+
+add_repo() {
+  info "1. Add the repository"
+
+  check "key downloads from ${JOTTA_KEY_URL}" \
+    curl -fsSL --retry 3 --retry-delay 2 -o "$WORK/jotta.gpg" "$JOTTA_KEY_URL"
+  [ -s "$WORK/jotta.gpg" ] || die "could not download the signing key"
+
+  # Whatever the key says about itself, it must be the one we expect.
+  check "key has the pinned fingerprint ${JOTTA_EXPECTED_FPR}" \
+    assert_key_fingerprint "$WORK/jotta.gpg"
+  note "key uid" "$(gpg --show-keys --with-colons "$WORK/jotta.gpg" 2>/dev/null |
+    awk -F: '/^uid:/{print $10; exit}')"
+
+  local before=$CHECKS_FAILED
+  check "repository configured to trust only that key" \
+    repo_add jotta-cli "$WORK/jotta.gpg"
+
+  # The most likely reason on an older distro is the key algorithm: rpm gained
+  # EdDSA (ed25519) support in 4.15, so EL8-era rpm cannot import this key.
+  if [ "$CHECKS_FAILED" -gt "$before" ] && [ "$FAMILY" = rpm ]; then
+    note "rpm version" "$(rpm --version 2>&1)"
+    note "likely cause" \
+      "rpm before 4.15 cannot import EdDSA keys; this repository signs with ed25519"
+  fi
+}
+
+# ===========================================================================
+# Step 2 — update
+# ===========================================================================
+
+update_repo() {
+  info "2. Update"
+
+  check "package manager accepts the repository" repo_refresh jotta-cli
+
+  # Independently of what the package manager decided, check the signature
+  # ourselves, so a package manager that only warns cannot hide a bad one.
+  local url sig data keyring
+  url="$(metadata_signature_url)"
+  sig="$WORK/metadata.sig"
+  data=""
+
+  check "metadata downloads" curl -fsSL --retry 3 -o "$sig" "$url"
+  if [ "$FAMILY" = rpm ]; then
+    data="$WORK/metadata"
+    check "signed metadata downloads" curl -fsSL --retry 3 -o "$data" "${url%.asc}"
+  fi
+
+  keyring="$(keyring_with "$WORK/jotta.gpg")" || die "could not build a keyring"
+  check "metadata is signed by the pinned key" \
+    env GNUPGHOME="$keyring" gpg --batch --verify "$sig" ${data:+"$data"}
+  note "metadata signer" \
+    "$(GNUPGHOME="$keyring" signature_signer "$sig" ${data:+"$data"})"
+  [ "$FAMILY" = debian ] && {
+    note "metadata date" "$(sed -n 's/^Date: //p' "$sig" | head -n1)"
+    note "metadata architectures" "$(sed -n 's/^Architectures: //p' "$sig" | head -n1)"
+  }
+  rm -rf "$keyring"
+  return 0
+}
+
+# ===========================================================================
+# Step 3 — install
+# ===========================================================================
+
+install_cli() {
+  info "3. Install ${JOTTA_PACKAGE}"
+
+  check "installs with signature checking enabled" repo_install
+  check "package is installed" package_installed
+  note "installed version" "$(installed_version)"
+
+  verify_what_landed
+}
+
+# The package manager says it verified a signature. Check that the bytes on
+# disk are the ones the signed metadata vouches for.
+verify_what_landed() {
+  package_installed || {
+    note "artifact checks skipped" "${JOTTA_PACKAGE} is not installed"
+    return 1
+  }
+  case "$FAMILY" in
+    debian)
+      # Debian packages are not individually signed; trust runs
+      # InRelease -> Packages -> SHA256 of the .deb. Walk that last hop.
       mkdir -p "$WORK/dl" && chmod 777 "$WORK" "$WORK/dl"
       ( cd "$WORK/dl" && apt-get download "$JOTTA_PACKAGE" >/dev/null 2>&1 )
       local deb want got
       deb="$(find "$WORK/dl" -maxdepth 1 -name '*.deb' | head -n1)"
-      if [ -n "$deb" ]; then
-        want="$(apt-cache show "$JOTTA_PACKAGE" | awk '/^SHA256:/{print $2; exit}')"
-        got="$(sha256sum "$deb" | cut -d' ' -f1)"
-        check "package: .deb digest matches the signed Packages index" \
-          test "$want" = "$got"
-        note "package: sha256" "$got"
-      else
-        note "package: digest check skipped" "apt-get download produced no file"
+      if [ -z "$deb" ]; then
+        note "digest check skipped" "apt-get download produced no file"
+        return 0
       fi
+      want="$(apt-cache show "$JOTTA_PACKAGE" | awk '/^SHA256:/{print $2; exit}')"
+      got="$(sha256sum "$deb" | cut -d' ' -f1)"
+      check ".deb digest matches the signed Packages index" test "$want" = "$got"
+      note "package sha256" "$got"
       ;;
     rpm)
-      pkg_version="$(rpm -q --qf '%{VERSION}-%{RELEASE}' "$JOTTA_PACKAGE" 2>/dev/null)"
-
-      # rpm prints "(none)" for absent tags, so require at least one tag that
-      # holds something else.
+      # rpm prints "(none)" for absent tags, so require a tag with content.
       local sig
       sig="$(rpm -q --qf '%{SIGPGP:pgpsig}\n%{SIGGPG:pgpsig}\n%{RSAHEADER:pgpsig}\n%{DSAHEADER:pgpsig}\n' \
         "$JOTTA_PACKAGE" 2>/dev/null | grep -vxF '(none)' | grep -v '^$' | head -n1)"
-      check "package: installed rpm carries a signature" test -n "$sig"
-      note "package: signature" "${sig:-(none)}"
+      check "installed rpm carries a signature" test -n "$sig"
+      note "package signature" "${sig:-(none)}"
 
-      # And check a freshly downloaded rpm end to end with rpm --checksig.
-      local arch file url
+      local arch file
       arch="$(rpm_arch)"
       file="$(curl -fsSL "${JOTTA_HOST}${JOTTA_RPM_PATH}/" |
         grep -o "jotta-cli-[0-9][^\"]*\.${arch}\.rpm" | sort -V | tail -n1)"
-      if [ -n "$file" ]; then
-        url="${JOTTA_HOST}${JOTTA_RPM_PATH}/${file}"
-        if curl -fsSL --retry 3 -o "$WORK/pkg.rpm" "$url"; then
-          check "package: rpm --checksig on ${file}" rpm --checksig "$WORK/pkg.rpm"
-        else
-          note "package: checksig skipped" "could not download $url"
-        fi
+      if [ -z "$file" ]; then
+        note "checksig skipped" "no ${arch} rpm in the repository index"
+        return 0
+      fi
+      if curl -fsSL --retry 3 -o "$WORK/pkg.rpm" "${JOTTA_HOST}${JOTTA_RPM_PATH}/${file}"; then
+        check "rpm --checksig on ${file}" rpm --checksig "$WORK/pkg.rpm"
       else
-        note "package: checksig skipped" "no ${arch} rpm found in the repo index"
+        note "checksig skipped" "could not download ${file}"
       fi
       ;;
   esac
-
-  note "package: version" "${pkg_version:-<not installed>}"
-
-  check "binaries: jotta-cli present" test -x /usr/bin/jotta-cli
-  check "binaries: jottad present"    test -x /usr/bin/jottad
-  check "binaries: run_jottad present" test -x /usr/bin/run_jottad
-
-  # The client version string must match what the package manager installed.
-  local cli_version
-  cli_version="$(/usr/bin/jotta-cli version 2>/dev/null |
-    sed -n 's/^jotta-cli version //p' | head -n1)"
-  note "binaries: jotta-cli version" "${cli_version:-<none>}"
-  check "binaries: CLI version matches package version" \
-    bash -c '[ -n "$1" ] && [ -n "$2" ] &&
-             case "$2" in *"$1"*) exit 0 ;; esac
-             echo "cli=${1:-<empty>} pkg=${2:-<empty>}"; exit 1' \
-    _ "$cli_version" "$pkg_version"
+  return 0
 }
 
-# ---------------------------------------------------------------------------
-# 6. Daemon smoke test
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Step 4 — run it
+# ===========================================================================
 
-smoke_daemon() {
-  info "Daemon smoke test"
+run_cli() {
+  info "4. Run it"
 
+  check "jotta-cli is on PATH"   test -x /usr/bin/jotta-cli
+  check "jottad is on PATH"      test -x /usr/bin/jottad
+  check "run_jottad is on PATH"  test -x /usr/bin/run_jottad
+
+  local cli_version pkg_version
+  cli_version="$(cli_version_of jotta-cli)"
+  pkg_version="$(installed_version)"
+  note "jotta-cli version" "${cli_version:-<none>}"
+  check "CLI version matches the installed package" \
+    versions_agree "$cli_version" "$pkg_version"
+
+  start_daemon_and_talk_to_it
+}
+
+# `jotta-cli version` prints two different shapes:
+#   connected  (stdout)  "jotta-cli version : 0.17.176206"  inside a table
+#   no daemon  (stderr)  "jotta-cli version 0.17.176206"    before the error
+# so merge the streams and accept either. Pass "jottad" for the daemon's own
+# version out of the connected form.
+cli_version_of() { # cli_version_of <jotta-cli|jottad> [user] [runtime-dir]
+  local what="$1" user="${2:-}" rt="${3:-}" raw
+  if [ -n "$user" ]; then
+    raw="$(su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli version" 2>&1)"
+  else
+    raw="$(/usr/bin/jotta-cli version 2>&1)"
+  fi
+  printf '%s\n' "$raw" |
+    sed -n "s/^[[:space:]]*${what} version[[:space:]]*:\?[[:space:]]*\([0-9][0-9._-]*\).*/\1/p" |
+    head -n1
+}
+
+# The package version carries a packaging suffix the binary does not, so the
+# binary's version must appear inside it. Empty never counts as a match.
+versions_agree() { # versions_agree <from-binary> <from-package>
+  [ -n "$1" ] && [ -n "$2" ] || { printf 'binary=%s package=%s\n' "${1:-<empty>}" "${2:-<empty>}"; return 1; }
+  case "$2" in
+    *"$1"*) return 0 ;;
+  esac
+  printf 'binary=%s package=%s\n' "$1" "$2"
+  return 1
+}
+
+start_daemon_and_talk_to_it() {
   local user=jottatest uid rt
   id -u "$user" >/dev/null 2>&1 || useradd -m "$user" >/dev/null 2>&1
-  uid="$(id -u "$user")" || { note "daemon: skipped" "could not create test user"; return 0; }
+  uid="$(id -u "$user")" || { note "daemon skipped" "could not create a test user"; return 0; }
 
-  # jottad runs per-user and puts its unix socket under XDG_RUNTIME_DIR.
-  # Containers have no logind, so create the directory by hand.
+  # jottad runs per user and wants XDG_RUNTIME_DIR. Containers have no logind,
+  # so create that directory by hand.
   rt="/run/user/$uid"
-  mkdir -p "$rt"
-  chown "$user" "$rt"
-  chmod 700 "$rt"
+  mkdir -p "$rt" && chown "$user" "$rt" && chmod 700 "$rt"
 
   # JOTTAD_SYSTEMD=0 makes the shipped launcher fork the daemon directly
-  # instead of going through `systemctl --user`, which containers lack.
+  # instead of going through `systemctl --user`, which a container lacks.
   su -l "$user" -c \
     "XDG_RUNTIME_DIR=$rt JOTTAD_SYSTEMD=0 JOTTAD_AUTOSTART=0 setsid run_jottad" \
     > "$WORK/jottad.log" 2>&1
 
-  local socket="$rt/jottad/jottad.socket" i
-  for i in $(seq 1 60); do
-    [ -S "$socket" ] && break
+  # Ready means "the CLI can talk to it", not "a file appeared where I guessed":
+  # with no user session jottad listens on 127.0.0.1:14443 rather than on the
+  # unix socket it uses under logind.
+  local failed_before=$CHECKS_FAILED i ready=1
+  for i in $(seq 1 "${JOTTA_DAEMON_TIMEOUT:-90}"); do
+    if su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli version" >/dev/null 2>&1; then
+      ready=0
+      break
+    fi
     sleep 1
   done
+  check "jotta-cli reaches jottad (within ${i}s)" test "$ready" -eq 0
 
-  local failed_before=$CHECKS_FAILED
-  check "daemon: socket appears at ${socket}" test -S "$socket"
-  check "daemon: jotta-cli version talks to jottad" \
-    su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli version"
+  if [ -S "$rt/jottad/jottad.socket" ]; then
+    note "daemon endpoint" "unix://$rt/jottad/jottad.socket"
+  else
+    note "daemon endpoint" "tcp://127.0.0.1:14443 (no user session, so no unix socket)"
+  fi
 
-  # Not logged in, so this is expected to report "not logged in" rather than
-  # succeed. Record it for the report, never fail on it.
-  note "daemon: jotta-cli status" \
+  # The daemon and the CLI ship in the same package, so they must agree.
+  local daemon_version
+  daemon_version="$(cli_version_of jottad "$user" "$rt")"
+  note "jottad version" "${daemon_version:-<none>}"
+  check "jottad version matches the installed package" \
+    versions_agree "$daemon_version" "$(installed_version)"
+
+  # Nobody is logged in, so this reports that. Recorded, never fatal.
+  note "jotta-cli status" \
     "$(su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli status" 2>&1 | _oneline)"
 
   if [ "$CHECKS_FAILED" -gt "$failed_before" ]; then
@@ -343,20 +430,71 @@ smoke_daemon() {
     sed 's/^/       /' "$WORK/jottad.log" | head -n 40
   fi
 
-  su -l "$user" -c "XDG_RUNTIME_DIR=$rt JOTTAD_KILL=1 run_jottad" >/dev/null 2>&1 || true
+  su -l "$user" -c "XDG_RUNTIME_DIR=$rt JOTTAD_KILL=1 run_jottad" >/dev/null 2>&1
+  return 0
 }
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Counter-check — the same four steps, pinned to the superseded key
+#
+# Without this the run above only proves that installing works, not that the
+# signature was ever what made it work.
+# ===========================================================================
+
+wrong_key_is_refused() {
+  info "Counter-check: the superseded key must not work"
+
+  curl -fsSL --retry 3 -o "$WORK/legacy.gpg" \
+    "${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}" 2>/dev/null
+  if [ ! -s "$WORK/legacy.gpg" ]; then
+    note "counter-check skipped" \
+      "no key served at ${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}"
+    return 0
+  fi
+
+  # Start from nothing: no package, no good repository, no trusted good key.
+  repo_uninstall >/dev/null 2>&1
+  repo_forget jotta-cli "$JOTTA_EXPECTED_FPR"
+  check_fails "package removed before the counter-check" package_installed
+
+  repo_add jotta-legacy "$WORK/legacy.gpg"
+
+  # The refresh is only recorded: dnf5 prints "repomd.xml GPG signature
+  # verification error" and still exits 0, so it cannot carry the assertion.
+  note "refresh output" \
+    "$(repo_refresh jotta-legacy 2>&1 | grep -iE 'signature|key|not signed|E:' | _oneline)"
+
+  check_fails "install from the superseded-key repository is refused" repo_install
+  check_fails "nothing was installed by the refused attempt" package_installed
+
+  repo_forget jotta-legacy "$JOTTA_LEGACY_FPR"
+}
+
+# ===========================================================================
+
+# Run one step and report whether every check inside it passed, so a step that
+# cannot possibly succeed does not drag a dozen dependent checks down with it.
+step() { # step <function>
+  local before=$CHECKS_FAILED
+  "$1"
+  [ "$CHECKS_FAILED" -eq "$before" ]
+}
 
 main() {
   : > "$JOTTA_RESULTS"
-  bootstrap
-  fetch_keys
-  verify_metadata
-  negative_test
-  install_package
-  verify_installed_package
-  smoke_daemon
+
+  step bootstrap            # make the container able to run the test
+
+  if step add_repo &&       # 1. add the repository and its key
+     step update_repo &&    # 2. update
+     step install_cli; then # 3. install jotta-cli
+     step run_cli           # 4. run it, and see that it worked
+  else
+    note "remaining steps skipped" "an earlier step failed; see the first failure above"
+  fi
+
+  step wrong_key_is_refused # and prove the signature is what made that work
+
   finish
 }
 
