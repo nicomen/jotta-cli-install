@@ -4,7 +4,9 @@
 # Writes to $GITHUB_STEP_SUMMARY when set, otherwise to stdout.
 #
 #   scripts/report.sh "Debian 12 / amd64" results/results.tsv
-#   scripts/report.sh --all results/            # every results.tsv underneath
+#   scripts/report.sh --all results/       # every results.tsv underneath
+#   scripts/report.sh --grid results/      # distro x arch status grid
+#   scripts/report.sh --failures results/  # failing checks, grouped
 #
 set -euo pipefail
 
@@ -18,6 +20,109 @@ out() {
 
 # Markdown table cells cannot contain a raw pipe or newline.
 cell() { printf '%s' "$1" | tr '\n|' '  ' | sed 's/`/'"'"'/g' | cut -c1-200; }
+
+# ---------------------------------------------------------------------------
+# Status grid: distro down the side, architecture across the top.
+# Joins results/<target-id>/results.tsv against the target list in matrix.json,
+# so legs that were not part of the selected tier are shown as not-run rather
+# than silently disappearing.
+# ---------------------------------------------------------------------------
+
+# leg_status <results-dir> <target-id>  ->  pass | fail | missing
+leg_status() {
+  local file="$1/$2/results.tsv"
+  [ -s "$file" ] || { printf 'missing\n'; return; }
+  if cut -f2 "$file" | grep -qx fail; then printf 'fail\n'; else printf 'pass\n'; fi
+}
+
+status_icon() {
+  case "$1" in
+    pass)    printf '%s' '✅' ;;
+    fail)    printf '%s' '❌' ;;
+    missing) printf '%s' '⏳' ;;   # in the matrix, no result this run
+    *)       printf '%s' '·'  ;;   # not a published target
+  esac
+}
+
+render_grid() {
+  local dir="${1:-results}" matrix="${2:-matrix.json}"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    out "_No grid: \`jq\` is not installed._"
+    return 0
+  fi
+  [ -f "$matrix" ] || { out "_No grid: ${matrix} not found._"; return 0; }
+
+  # Column and row order follow matrix.json rather than being sorted, so the
+  # grid keeps the order a human put the targets in.
+  local ordered='reduce .[] as $v ([]; if index([$v]) then . else . + [$v] end)'
+  local arches distros
+  mapfile -t arches  < <(jq -r "[.targets[].arch]   | ${ordered} | .[]" "$matrix")
+  mapfile -t distros < <(jq -r "[.targets[].distro] | ${ordered} | .[]" "$matrix")
+
+  local header="| Distro |" sep="|---|"
+  local a d id st row worst=pass any=0
+  for a in "${arches[@]}"; do
+    header+=" ${a} |"
+    sep+=":-:|"
+  done
+  out "$header"
+  out "$sep"
+
+  for d in "${distros[@]}"; do
+    row="| ${d} |"
+    for a in "${arches[@]}"; do
+      id="$(jq -r --arg d "$d" --arg a "$a" \
+        'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
+      if [ -z "$id" ]; then
+        st=none
+      else
+        st="$(leg_status "$dir" "$id")"
+        any=1
+        if [ "$st" = fail ]; then worst=fail; fi
+      fi
+      row+=" $(status_icon "$st") |"
+    done
+    out "$row"
+  done
+  out ""
+  out "✅ passed · ❌ failed · ⏳ not run in this tier · · not published for that architecture"
+
+  [ "$any" -eq 1 ] || return 0
+  [ "$worst" = pass ]
+}
+
+# Per-check view: which individual checks failed, and where. Far more useful
+# than the grid when one thing breaks across several legs at once.
+render_failures() {
+  local dir="${1:-results}"
+  local tmp
+  tmp="$(mktemp)"
+
+  while read -r f; do
+    local leg
+    leg="$(basename "$(dirname "$f")")"
+    awk -F'\t' -v leg="$leg" '$2 == "fail" { print $1 "\t" leg }' "$f" >> "$tmp"
+  done < <(find "$dir" -name 'results.tsv' | sort)
+
+  if [ ! -s "$tmp" ]; then
+    rm -f "$tmp"
+    out "All checks passed on every leg that ran."
+    out ""
+    return 0
+  fi
+
+  out "| Failing check | Legs |"
+  out "|---|---|"
+  local check legs
+  while read -r check; do
+    legs="$(awk -F'\t' -v c="$check" '$1 == c { printf "%s%s", sep, $2; sep=", " } END { print "" }' "$tmp")"
+    out "| $(cell "$check") | $(cell "$legs") |"
+  done < <(cut -f1 "$tmp" | sort -u)
+  out ""
+  rm -f "$tmp"
+  return 1
+}
 
 render_one() {
   local title="$1" file="$2"
@@ -61,6 +166,14 @@ render_one() {
 
 main() {
   local rc=0
+  if [ "${1:-}" = "--grid" ]; then
+    render_grid "${2:-results}" "${3:-matrix.json}" || rc=1
+    return $rc
+  fi
+  if [ "${1:-}" = "--failures" ]; then
+    render_failures "${2:-results}" || rc=1
+    return $rc
+  fi
   if [ "${1:-}" = "--all" ]; then
     local dir="${2:-results}" f title
     while read -r f; do

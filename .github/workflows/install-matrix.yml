@@ -130,6 +130,8 @@ jobs:
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      contents: write   # only used to commit the status grid back to main
     steps:
       - uses: actions/checkout@v4
 
@@ -139,10 +141,34 @@ jobs:
           path: results
           merge-multiple: true
 
-      - name: Render combined report
+      - name: Status grid
         run: |
-          echo "## jotta-cli install matrix" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          scripts/report.sh --all results
+          {
+            echo "## jotta-cli install matrix"
+            echo ""
+            echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\` · tier: \`${{ inputs.tier || 'broad' }}\`"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          scripts/report.sh --grid results || true
+          scripts/report.sh --failures results || true
+
+      - name: Per-leg detail
+        if: always()
+        run: scripts/report.sh --all results
+
+      # The README carries the same grid so the repository front page shows the
+      # last known state without opening a run. Only main and the nightly cron
+      # write it back; pull requests just render to the job summary above.
+      - name: Update README status grid
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          scripts/update-readme.sh results README.md
+          if git diff --quiet -- README.md; then
+            echo "README already current"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "ci: update install matrix status grid [skip ci]"
+          git push origin HEAD:main

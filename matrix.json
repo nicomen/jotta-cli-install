@@ -3,6 +3,7 @@
     {
       "id": "debian-12-amd64",
       "name": "Debian 12 (bookworm) / amd64",
+      "distro": "Debian 12 (bookworm)",
       "image": "debian:12",
       "family": "debian",
       "platform": "linux/amd64",
@@ -14,6 +15,7 @@
     {
       "id": "debian-12-arm64",
       "name": "Debian 12 (bookworm) / arm64",
+      "distro": "Debian 12 (bookworm)",
       "image": "debian:12",
       "family": "debian",
       "platform": "linux/arm64",
@@ -25,6 +27,7 @@
     {
       "id": "debian-13-amd64",
       "name": "Debian 13 (trixie) / amd64",
+      "distro": "Debian 13 (trixie)",
       "image": "debian:13",
       "family": "debian",
       "platform": "linux/amd64",
@@ -36,6 +39,7 @@
     {
       "id": "debian-13-arm64",
       "name": "Debian 13 (trixie) / arm64",
+      "distro": "Debian 13 (trixie)",
       "image": "debian:13",
       "family": "debian",
       "platform": "linux/arm64",
@@ -47,6 +51,7 @@
     {
       "id": "ubuntu-22.04-amd64",
       "name": "Ubuntu 22.04 LTS / amd64",
+      "distro": "Ubuntu 22.04 LTS",
       "image": "ubuntu:22.04",
       "family": "debian",
       "platform": "linux/amd64",
@@ -58,6 +63,7 @@
     {
       "id": "ubuntu-22.04-arm64",
       "name": "Ubuntu 22.04 LTS / arm64",
+      "distro": "Ubuntu 22.04 LTS",
       "image": "ubuntu:22.04",
       "family": "debian",
       "platform": "linux/arm64",
@@ -69,6 +75,7 @@
     {
       "id": "ubuntu-24.04-amd64",
       "name": "Ubuntu 24.04 LTS / amd64",
+      "distro": "Ubuntu 24.04 LTS",
       "image": "ubuntu:24.04",
       "family": "debian",
       "platform": "linux/amd64",
@@ -80,6 +87,7 @@
     {
       "id": "ubuntu-24.04-arm64",
       "name": "Ubuntu 24.04 LTS / arm64",
+      "distro": "Ubuntu 24.04 LTS",
       "image": "ubuntu:24.04",
       "family": "debian",
       "platform": "linux/arm64",
@@ -91,6 +99,7 @@
     {
       "id": "ubuntu-26.04-amd64",
       "name": "Ubuntu 26.04 LTS / amd64",
+      "distro": "Ubuntu 26.04 LTS",
       "image": "ubuntu:26.04",
       "family": "debian",
       "platform": "linux/amd64",
@@ -102,6 +111,7 @@
     {
       "id": "ubuntu-26.04-arm64",
       "name": "Ubuntu 26.04 LTS / arm64",
+      "distro": "Ubuntu 26.04 LTS",
       "image": "ubuntu:26.04",
       "family": "debian",
       "platform": "linux/arm64",
@@ -113,6 +123,7 @@
     {
       "id": "fedora-latest-amd64",
       "name": "Fedora (latest) / amd64",
+      "distro": "Fedora (latest)",
       "image": "fedora:latest",
       "family": "rpm",
       "platform": "linux/amd64",
@@ -124,6 +135,7 @@
     {
       "id": "fedora-latest-arm64",
       "name": "Fedora (latest) / arm64",
+      "distro": "Fedora (latest)",
       "image": "fedora:latest",
       "family": "rpm",
       "platform": "linux/arm64",
@@ -135,6 +147,7 @@
     {
       "id": "rockylinux-rockylinux-9-amd64",
       "name": "Rocky Linux 9 / amd64",
+      "distro": "Rocky Linux 9",
       "image": "rockylinux/rockylinux:9",
       "family": "rpm",
       "platform": "linux/amd64",
@@ -146,6 +159,7 @@
     {
       "id": "rockylinux-rockylinux-9-arm64",
       "name": "Rocky Linux 9 / arm64",
+      "distro": "Rocky Linux 9",
       "image": "rockylinux/rockylinux:9",
       "family": "rpm",
       "platform": "linux/arm64",
@@ -157,6 +171,7 @@
     {
       "id": "almalinux-9-amd64",
       "name": "AlmaLinux 9 / amd64",
+      "distro": "AlmaLinux 9",
       "image": "almalinux:9",
       "family": "rpm",
       "platform": "linux/amd64",
@@ -168,6 +183,7 @@
     {
       "id": "almalinux-9-arm64",
       "name": "AlmaLinux 9 / arm64",
+      "distro": "AlmaLinux 9",
       "image": "almalinux:9",
       "family": "rpm",
       "platform": "linux/arm64",
@@ -179,6 +195,7 @@
     {
       "id": "opensuse-leap-15.6-amd64",
       "name": "openSUSE Leap 15.6 / amd64",
+      "distro": "openSUSE Leap 15.6",
       "image": "opensuse/leap:15.6",
       "family": "rpm",
       "platform": "linux/amd64",
@@ -190,6 +207,7 @@
     {
       "id": "opensuse-leap-15.6-arm64",
       "name": "openSUSE Leap 15.6 / arm64",
+      "distro": "openSUSE Leap 15.6",
       "image": "opensuse/leap:15.6",
       "family": "rpm",
       "platform": "linux/arm64",
@@ -201,6 +219,7 @@
     {
       "id": "debian-12-armhf",
       "name": "Debian 12 (bookworm) / armhf",
+      "distro": "Debian 12 (bookworm)",
       "image": "debian:12",
       "family": "debian",
       "platform": "linux/arm/v7",
@@ -212,6 +231,7 @@
     {
       "id": "debian-12-i386",
       "name": "Debian 12 (bookworm) / i386",
+      "distro": "Debian 12 (bookworm)",
       "image": "debian:12",
       "family": "debian",
       "platform": "linux/386",
@@ -223,6 +243,7 @@
     {
       "id": "debian-13-armhf",
       "name": "Debian 13 (trixie) / armhf",
+      "distro": "Debian 13 (trixie)",
       "image": "debian:13",
       "family": "debian",
       "platform": "linux/arm/v7",
@@ -234,6 +255,7 @@
     {
       "id": "debian-13-i386",
       "name": "Debian 13 (trixie) / i386",
+      "distro": "Debian 13 (trixie)",
       "image": "debian:13",
       "family": "debian",
       "platform": "linux/386",
