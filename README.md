@@ -14,28 +14,29 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 | Distro | amd64 | arm64 | armhf | i386 |
 |---|:-:|:-:|:-:|:-:|
-| <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 8 (UBI) | ❌ | ❌ | · | · |
-| <img src="https://cdn.simpleicons.org/almalinux" width="16" height="16" valign="middle" alt=""> AlmaLinux 8 | ❌ | ❌ | · | · |
-| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 11 (bullseye) | ❌ | ❌ | ❌ | ❌ |
-| <img src="https://cdn.simpleicons.org/centos" width="16" height="16" valign="middle" alt=""> CentOS Stream 9 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 22.04 LTS | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/almalinux" width="16" height="16" valign="middle" alt=""> AlmaLinux 9 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 9 (UBI) | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/rockylinux" width="16" height="16" valign="middle" alt=""> Rocky Linux 9 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 12 (bookworm) | ✅ | ✅ | ✅ | ✅ |
-| <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 24.04 LTS | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Leap 15.6 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/fedora" width="16" height="16" valign="middle" alt=""> Fedora 40 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/centos" width="16" height="16" valign="middle" alt=""> CentOS Stream 10 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 10 (UBI) | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/rockylinux" width="16" height="16" valign="middle" alt=""> Rocky Linux 10 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/almalinux" width="16" height="16" valign="middle" alt=""> AlmaLinux 10 | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 13 (trixie) | ✅ | ✅ | ✅ | ✅ |
-| <img src="https://cdn.simpleicons.org/fedora" width="16" height="16" valign="middle" alt=""> Fedora (latest) | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 26.04 LTS | ✅ | ✅ | · | · |
-| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | ❌ | ❌ | · | · |
+| <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 8 (UBI) | ❌/— | ❌/— | · | · |
+| <img src="https://cdn.simpleicons.org/almalinux" width="16" height="16" valign="middle" alt=""> AlmaLinux 8 | ❌/— | ❌/— | · | · |
+| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 11 (bullseye) | —/— | —/— | —/— | —/— |
+| <img src="https://cdn.simpleicons.org/centos" width="16" height="16" valign="middle" alt=""> CentOS Stream 9 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 22.04 LTS | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/almalinux" width="16" height="16" valign="middle" alt=""> AlmaLinux 9 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 9 (UBI) | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/rockylinux" width="16" height="16" valign="middle" alt=""> Rocky Linux 9 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 12 (bookworm) | ✅/✅ | ✅/✅ | ✅/✅ | ✅/✅ |
+| <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 24.04 LTS | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Leap 15.6 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/fedora" width="16" height="16" valign="middle" alt=""> Fedora 40 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/centos" width="16" height="16" valign="middle" alt=""> CentOS Stream 10 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 10 (UBI) | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/rockylinux" width="16" height="16" valign="middle" alt=""> Rocky Linux 10 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/almalinux" width="16" height="16" valign="middle" alt=""> AlmaLinux 10 | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 13 (trixie) | ✅/✅ | ✅/✅ | ✅/✅ | ✅/✅ |
+| <img src="https://cdn.simpleicons.org/fedora" width="16" height="16" valign="middle" alt=""> Fedora (latest) | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 26.04 LTS | ✅/✅ | ✅/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | ❌/✅ | ❌/✅ | · | · |
 
-✅ passed · ❌ failed · ⏳ not run in this tier · · not published for that architecture
+Each cell is install/run. ✅ passed · ❌ failed · — not reached (an earlier phase failed) ·
+⏳ not run in this tier · · not published for that architecture
 
 **Failing checks**
 
@@ -46,7 +47,7 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 | nothing was installed by the refused attempt | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-19 22:59 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35474651810)</sub>
+<sub>2026-09-19 23:12 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35475226822)</sub>
 
 <!-- STATUS:END -->
 
