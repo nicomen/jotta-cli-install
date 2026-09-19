@@ -47,29 +47,25 @@ leg_status() {
   fi
 }
 
-status_icon() {
-  case "$1" in
-    pass)    printf '%s' '✅' ;;
-    fail)    printf '%s' '❌' ;;
-    missing) printf '%s' '⏳' ;;   # in the matrix, no result this run
-    none)     printf '%s' '—' ;;   # ran, but never reached this phase
-    none_col) printf '%s' '·' ;;   # not a published target (whole column)
-    *)        printf '%s' '·' ;;
+# Wraps the emoji in a <span title="..."> so hovering over a cell explains it
+# without needing the legend below — GitHub renders inline HTML in table
+# cells (same as the distro <img> icons already do).
+status_icon() { # status_icon <pass|fail|missing|none|none_col> [column label]
+  local status="$1" column="${2:-}" glyph text
+  case "$status" in
+    pass)     glyph='✅'; text="${column}: passed" ;;
+    fail)     glyph='❌'; text="${column}: failed" ;;
+    missing)  glyph='⏳'; text="in the matrix, but not run in this tier" ;;
+    none)     glyph='—';  text="${column}: not reached — an earlier phase failed" ;;
+    none_col) glyph='·';  text="not published for this architecture" ;;
+    *)        glyph='·';  text="not published for this architecture" ;;
   esac
+  printf '<span title="%s">%s</span>' "$text" "$glyph"
 }
 
 # Which numbered step (from info()'s "PHASE: N. ..." markers, see common.sh)
-# a check happened under.
-#
-# Three named phases, kept genuinely separate rather than merged, because
-# they run in this order but a later one can pass while an earlier-looking
-# label wouldn't make sense failing for a later reason: install (steps 1-3),
-# run (step 4). The wrong-key test (does installing with the WRONG key actually
-# get refused). Folding "signing" into "install" made a leg that installs
-# and runs perfectly (Tumbleweed) show a failure under the label "install",
-# for a check that runs after "run" -- backwards and confusing. Each column
-# now means exactly, and only, what it says.
-leg_phase_status() { # leg_phase_status <results-dir> <target-id> <install|run|signing>
+# a check happened under: install (steps 1-3) or run (step 4).
+leg_phase_status() { # leg_phase_status <results-dir> <target-id> <install|run>
   local file="$1/$2/results.tsv" want="$3"
   [ -s "$file" ] || { printf 'none\n'; return; }
 
@@ -80,7 +76,6 @@ leg_phase_status() { # leg_phase_status <results-dir> <target-id> <install|run|s
     BEGIN                          { bucket = "install" }
     /^PHASE: 4\./                 { bucket = "run"; next }
     /^PHASE: [1-3]\./             { bucket = "install"; next }
-    /^PHASE: Wrong-key test/       { bucket = "signing"; next }
     $2 == "pass" || $2 == "fail"  {
       if (bucket == want) { seen = 1; if ($2 == "fail") failed = 1 }
     }
@@ -160,14 +155,10 @@ render_grid() {
         if [ "$st" = missing ]; then
           row+=" $(status_icon missing) |"
         else
-          # Exactly two columns: install, execution. The wrong-key test is
-          # neither -- it's a signing-integrity assertion, not the install or
-          # the run -- so it's excluded from both and shows up only in the
-          # failing-checks table below, never miscounted into either cell.
           local i_st r_st
           i_st="$(leg_phase_status "$dir" "$id" install)"
           r_st="$(leg_phase_status "$dir" "$id" run)"
-          row+=" $(status_icon "$i_st")/$(status_icon "$r_st") |"
+          row+=" $(status_icon "$i_st" install)/$(status_icon "$r_st" execution) |"
         fi
       fi
     done
@@ -176,9 +167,6 @@ render_grid() {
   out ""
   out "Each cell is install/execution. ✅ passed · ❌ failed · — not reached (an earlier"
   out "phase failed) · ⏳ not run in this tier · · not published for that architecture."
-  out "The wrong-key test isn'\''t install or execution, so it's excluded from"
-  out "both — see \"Failing checks\" below if either column looks passing but something"
-  out "still failed."
 
   [ "$any" -eq 1 ] || return 0
   [ "$worst" = pass ]

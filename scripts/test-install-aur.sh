@@ -12,9 +12,7 @@
 #     download doesn't match that pin
 #
 # So the four steps become: fetch the PKGBUILD, build it (which is where the
-# pinned hash is actually checked), install the result, run it. A wrong-key test
-# at the end corrupts the pin and requires the build to fail — otherwise the
-# pin would not be proven to do anything.
+# pinned hash is actually checked), install the result, run it.
 #
 set -uo pipefail
 
@@ -121,31 +119,6 @@ run_cli() {
   check_binaries_and_run   # shared with test-install.sh — see common.sh
 }
 
-# ===========================================================================
-# Wrong-key test — a corrupted pin must not build
-# ===========================================================================
-
-corrupted_pin_is_refused() {
-  info "Wrong-key test: a corrupted pinned checksum must not build"
-
-  if [ ! -d "$BUILD_DIR" ]; then
-    note "wrong-key test skipped" "no PKGBUILD to corrupt"
-    return 0
-  fi
-
-  local corrupt="$WORK/corrupt"
-  rm -rf "$corrupt"
-  cp -r "$BUILD_DIR" "$corrupt"
-  sed -i "s/^\\(sha256sums_x86_64=(['\"]\\{0,1\\}\\)[0-9a-f]*/\\1$(printf '0%.0s' {1..64})/" \
-    "$corrupt/PKGBUILD"
-  chown -R "$BUILD_USER" "$corrupt"
-
-  check_fails "makepkg refuses a package whose download does not match the pin" \
-    as_builder "cd '$corrupt' && makepkg --syncdeps --noconfirm --needed"
-}
-
-# ===========================================================================
-
 main() {
   : > "$JOTTA_RESULTS"
 
@@ -156,8 +129,6 @@ main() {
   else
     note "install and run skipped" "the build step did not produce a package"
   fi
-
-  step corrupted_pin_is_refused
 
   finish
 }

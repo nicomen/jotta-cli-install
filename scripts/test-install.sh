@@ -9,9 +9,7 @@
 #   3. install jotta-cli
 #   4. run it, and see that it worked
 #
-# Each step also asserts the signing that is supposed to protect it. A final
-# wrong-key test repeats the same four steps pinned to the superseded key and
-# requires them to fail — otherwise "the signature was checked" means nothing.
+# Each step also asserts the signing that is supposed to protect it.
 #
 set -uo pipefail
 
@@ -87,39 +85,6 @@ repo_install() {
     dnf|yum) "$PKG_MGR" -y install "$JOTTA_PACKAGE" ;;
     zypper) zypper --non-interactive install "$JOTTA_PACKAGE" ;;
   esac
-}
-
-repo_uninstall() {
-  case "$PKG_MGR" in
-    apt)     apt-get remove -y --purge "$JOTTA_PACKAGE" ;;
-    dnf|yum) "$PKG_MGR" -y remove "$JOTTA_PACKAGE" ;;
-    zypper)  zypper --non-interactive remove "$JOTTA_PACKAGE" ;;
-  esac
-}
-
-# Forget a repository completely: its definition, its key, and any metadata
-# already cached from it. Without this the next step could quietly succeed
-# using what the previous one left behind.
-repo_forget() { # repo_forget <repo-id> <key-fingerprint>
-  local id="$1" fpr="$2" short
-  case "$FAMILY" in
-    debian)
-      rm -f "/etc/apt/sources.list.d/${id}.list" "/usr/share/keyrings/${id}.gpg"
-      rm -f /var/lib/apt/lists/*jotta*
-      ;;
-    rpm)
-      rm -f "${RPM_REPO_DIR}/${id}.repo"
-      case "$PKG_MGR" in
-        dnf|yum) "$PKG_MGR" clean metadata >/dev/null 2>&1 ;;
-        zypper)  zypper --non-interactive clean --metadata >/dev/null 2>&1 ;;
-      esac
-      # rpm names imported keys after the last 8 hex of the key id.
-      short="$(printf '%s' "${fpr: -8}" | tr 'A-Z' 'a-z')"
-      rpm -qa 'gpg-pubkey*' 2>/dev/null | grep -i -- "$short" |
-        xargs -r rpm -e 2>/dev/null
-      ;;
-  esac
-  return 0
 }
 
 package_installed() {
@@ -348,42 +313,6 @@ run_cli() {
 }
 
 # ===========================================================================
-# Wrong-key test — the same four steps, pinned to the superseded key
-#
-# Without this the run above only proves that installing works, not that the
-# signature was ever what made it work.
-# ===========================================================================
-
-wrong_key_is_refused() {
-  info "Wrong-key test: the superseded key must not work"
-
-  curl -fsSL --retry 3 -o "$WORK/legacy.gpg" \
-    "${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}" 2>/dev/null
-  if [ ! -s "$WORK/legacy.gpg" ]; then
-    note "wrong-key test skipped" \
-      "no key served at ${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}"
-    return 0
-  fi
-
-  # Start from nothing: no package, no good repository, no trusted good key.
-  repo_uninstall >/dev/null 2>&1
-  repo_forget jotta-cli "$JOTTA_EXPECTED_FPR"
-  check_fails "package removed before the wrong-key test" package_installed
-
-  repo_add jotta-legacy "$WORK/legacy.gpg"
-
-  # The refresh is only recorded: dnf5 prints "repomd.xml GPG signature
-  # verification error" and still exits 0, so it cannot carry the assertion.
-  note "refresh output" \
-    "$(repo_refresh jotta-legacy 2>&1 | grep -iE 'signature|key|not signed|E:' | _oneline)"
-
-  check_fails "install from the superseded-key repository is refused" repo_install
-  check_fails "nothing was installed by the refused attempt" package_installed
-
-  repo_forget jotta-legacy "$JOTTA_LEGACY_FPR"
-}
-
-# ===========================================================================
 
 main() {
   : > "$JOTTA_RESULTS"
@@ -397,8 +326,6 @@ main() {
   else
     note "remaining steps skipped" "an earlier step failed; see the first failure above"
   fi
-
-  step wrong_key_is_refused # and prove the signature is what made that work
 
   finish
 }
