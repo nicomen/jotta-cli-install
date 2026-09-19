@@ -193,6 +193,18 @@
       "tier": "broad"
     },
     {
+      "id": "fedora-40-amd64",
+      "name": "Fedora 40 / amd64",
+      "distro": "Fedora 40",
+      "image": "fedora:40",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
       "id": "rockylinux-rockylinux-9-amd64",
       "name": "Rocky Linux 9 / amd64",
       "distro": "Rocky Linux 9",
@@ -205,6 +217,18 @@
       "tier": "core"
     },
     {
+      "id": "fedora-40-arm64",
+      "name": "Fedora 40 / arm64",
+      "distro": "Fedora 40",
+      "image": "fedora:40",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
       "id": "rockylinux-rockylinux-9-arm64",
       "name": "Rocky Linux 9 / arm64",
       "distro": "Rocky Linux 9",
@@ -213,6 +237,18 @@
       "platform": "linux/arm64",
       "arch": "arm64",
       "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "registry.access.redhat.com-ubi8-ubi-latest-amd64",
+      "name": "RHEL 8 (UBI) / amd64",
+      "distro": "RHEL 8 (UBI)",
+      "image": "registry.access.redhat.com/ubi8/ubi:latest",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
       "qemu": false,
       "tier": "broad"
     },
@@ -229,6 +265,18 @@
       "tier": "broad"
     },
     {
+      "id": "registry.access.redhat.com-ubi8-ubi-latest-arm64",
+      "name": "RHEL 8 (UBI) / arm64",
+      "distro": "RHEL 8 (UBI)",
+      "image": "registry.access.redhat.com/ubi8/ubi:latest",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
       "id": "almalinux-8-arm64",
       "name": "AlmaLinux 8 / arm64",
       "distro": "AlmaLinux 8",
@@ -237,6 +285,18 @@
       "platform": "linux/arm64",
       "arch": "arm64",
       "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "registry.access.redhat.com-ubi9-ubi-latest-amd64",
+      "name": "RHEL 9 (UBI) / amd64",
+      "distro": "RHEL 9 (UBI)",
+      "image": "registry.access.redhat.com/ubi9/ubi:latest",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
       "qemu": false,
       "tier": "broad"
     },
@@ -253,6 +313,18 @@
       "tier": "broad"
     },
     {
+      "id": "registry.access.redhat.com-ubi9-ubi-latest-arm64",
+      "name": "RHEL 9 (UBI) / arm64",
+      "distro": "RHEL 9 (UBI)",
+      "image": "registry.access.redhat.com/ubi9/ubi:latest",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
       "id": "almalinux-9-arm64",
       "name": "AlmaLinux 9 / arm64",
       "distro": "AlmaLinux 9",
@@ -265,6 +337,18 @@
       "tier": "broad"
     },
     {
+      "id": "quay.io-centos-centos-stream9-amd64",
+      "name": "CentOS Stream 9 / amd64",
+      "distro": "CentOS Stream 9",
+      "image": "quay.io/centos/centos:stream9",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
       "id": "opensuse-leap-15.6-amd64",
       "name": "openSUSE Leap 15.6 / amd64",
       "distro": "openSUSE Leap 15.6",
@@ -273,6 +357,18 @@
       "platform": "linux/amd64",
       "arch": "amd64",
       "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "quay.io-centos-centos-stream9-arm64",
+      "name": "CentOS Stream 9 / arm64",
+      "distro": "CentOS Stream 9",
+      "image": "quay.io/centos/centos:stream9",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
       "qemu": false,
       "tier": "broad"
     },
