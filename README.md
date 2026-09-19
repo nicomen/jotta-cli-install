@@ -14,26 +14,26 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 | Distro | amd64 | arm64 | armhf | i386 |
 |---|:-:|:-:|:-:|:-:|
-| Debian 11 (bullseye) | ❌ | ❌ | ⏳ | ⏳ |
-| Debian 12 (bookworm) | ✅ | ✅ | ⏳ | ⏳ |
-| Debian 13 (trixie) | ✅ | ✅ | ⏳ | ⏳ |
-| Ubuntu 22.04 LTS | ✅ | ✅ | · | · |
-| Ubuntu 24.04 LTS | ✅ | ✅ | · | · |
-| Ubuntu 26.04 LTS | ✅ | ✅ | · | · |
-| Fedora (latest) | ✅ | ✅ | · | · |
-| Fedora 40 | ✅ | ✅ | · | · |
-| Rocky Linux 10 | ✅ | ✅ | · | · |
-| Rocky Linux 9 | ✅ | ✅ | · | · |
 | RHEL 8 (UBI) | ❌ | ❌ | · | · |
 | AlmaLinux 8 | ❌ | ❌ | · | · |
-| RHEL 10 (UBI) | ✅ | ✅ | · | · |
-| RHEL 9 (UBI) | ✅ | ✅ | · | · |
-| AlmaLinux 10 | ✅ | ✅ | · | · |
-| AlmaLinux 9 | ✅ | ✅ | · | · |
+| Debian 11 (bullseye) | ❌ | ❌ | ⏳ | ⏳ |
 | CentOS Stream 9 | ✅ | ✅ | · | · |
-| CentOS Stream 10 | ✅ | ✅ | · | · |
-| openSUSE Tumbleweed | ❌ | ❌ | · | · |
+| Ubuntu 22.04 LTS | ✅ | ✅ | · | · |
+| AlmaLinux 9 | ✅ | ✅ | · | · |
+| RHEL 9 (UBI) | ✅ | ✅ | · | · |
+| Rocky Linux 9 | ✅ | ✅ | · | · |
+| Debian 12 (bookworm) | ✅ | ✅ | ⏳ | ⏳ |
+| Ubuntu 24.04 LTS | ✅ | ✅ | · | · |
 | openSUSE Leap 15.6 | ✅ | ✅ | · | · |
+| Fedora 40 | ✅ | ✅ | · | · |
+| CentOS Stream 10 | ✅ | ✅ | · | · |
+| RHEL 10 (UBI) | ✅ | ✅ | · | · |
+| Rocky Linux 10 | ✅ | ✅ | · | · |
+| AlmaLinux 10 | ✅ | ✅ | · | · |
+| Debian 13 (trixie) | ✅ | ✅ | ⏳ | ⏳ |
+| Fedora (latest) | ✅ | ✅ | · | · |
+| Ubuntu 26.04 LTS | ✅ | ✅ | · | · |
+| openSUSE Tumbleweed | ❌ | ❌ | · | · |
 
 ✅ passed · ❌ failed · ⏳ not run in this tier · · not published for that architecture
 
@@ -41,15 +41,12 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 | Failing check | Legs |
 |---|---|
-| build produced a package | aur |
 | fatal error | debian-11-amd64, debian-11-arm64 |
 | install from the superseded-key repository is refused | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
-| key has the pinned fingerprint DD0330E486A55840D37BDE77068CACA1BBF96E71 | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
-| makepkg builds jotta-cli (downloads and verifies the pinned SHA256) | aur |
 | nothing was installed by the refused attempt | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-19 10:55 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35438549423)</sub>
+<sub>2026-09-19 22:38 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35473771259)</sub>
 
 <!-- STATUS:END -->
 
