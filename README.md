@@ -130,10 +130,20 @@ Notes from actually running this:
 - **ed25519 needs rpm >= 4.15.** AlmaLinux 8 (rpm 4.14.3) cannot even
   `rpm --import` the key — so the whole EL8 family (Alma 8, Rocky 8, RHEL 8,
   CentOS 8) cannot verify this repository. openSUSE Leap 15.6 passes despite
-  also shipping 4.14.x, because SUSE backported the support. Debian 11 is past
-  EOL and its own repositories 404, so that leg cannot bootstrap either. Both
-  targets are in the matrix and both are expected to be red until that is
-  addressed.
+  also shipping 4.14.x, because SUSE backported the support. Both targets are
+  in the matrix and both are expected to be red until that is addressed.
+- **Debian 11 is not EOL — it's mid-transition, which is worse for testing.**
+  Per [Debian's own LTS schedule](https://wiki.debian.org/LTS), free/public
+  support (regular, then LTS) ran until 2026-08-31; after that it moves to
+  Freexian's commercial Extended LTS (through 2031), on separate
+  subscription-only infrastructure this test has no access to and a typical
+  end user wouldn't either. The leg fails because the *public* mirrors this
+  test actually uses are exactly what just lost coverage: `deb.debian.org`
+  drops the release entirely (main moves to `archive.debian.org`), while
+  `security.debian.org` keeps serving `bullseye-security`'s index but, as of
+  writing, that index advertises a `gnupg2` update whose `.deb` 404s on
+  `security.debian.org` itself — a real gap in Debian's own infrastructure at
+  the moment of transition, not a sign the release has been dead for years.
 - The ed25519 key currently carries **no expiry**, so the expiry check is a
   no-op until that changes.
 - **`dnf5` exits 0 from `makecache` even when metadata signature verification

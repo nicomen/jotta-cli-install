@@ -183,9 +183,12 @@ bootstrap() {
   esac
 }
 
-# A Debian release past EOL is served only from archive.debian.org. deb.debian.org
-# keeps advertising indices whose .deb files have been removed, so apt resolves
-# packages and then 404s on the download.
+# Once a Debian release's free/public support ends (regular, then LTS — see
+# https://wiki.debian.org/LTS; anything after that is paid Extended LTS on
+# separate infrastructure this doesn't have access to), deb.debian.org drops
+# it entirely and only archive.debian.org still serves the main suite.
+# "eol" here means "off deb.debian.org," not "unsupported" -- ELTS may well
+# still cover it.
 use_debian_archive_if_eol() {
   local id version
   # shellcheck disable=SC1091
@@ -195,7 +198,7 @@ use_debian_archive_if_eol() {
   case "$version" in ''|*[!0-9]*) return 0 ;; esac
   [ "$version" -le "${JOTTA_DEBIAN_EOL_BEFORE:-11}" ] || return 0
 
-  note "apt sources" "Debian ${version} is EOL — using archive.debian.org (security.debian.org for -security)"
+  note "apt sources" "Debian ${version} is off deb.debian.org — main via archive.debian.org, security stays on security.debian.org"
   # archive.debian.org never mirrored debian-security at all; that suite stays
   # on security.debian.org even after the release itself moves to archive.
   sed -i -e 's|[a-z.]*\.debian\.org/debian-security|security.debian.org/debian-security|g' \
