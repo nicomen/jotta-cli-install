@@ -138,6 +138,14 @@ Notes from actually running this:
 - **Without a systemd user session, `jottad` listens on `127.0.0.1:14443`**, not
   on the unix socket it uses under logind. The smoke test waits for
   `jotta-cli version` to succeed rather than for a socket path to appear.
+- **zypper on Tumbleweed does not refuse an unverifiable-signature install
+  under `--non-interactive`.** Pointed at a repo whose real signature doesn't
+  match the configured key, it prints "Continue? [y/n/...] (y)" and installs
+  anyway — apt, dnf and yum all hard-abort in the same situation, and so does
+  zypper on Leap 15.6. This is a genuine finding, not a test bug: the counter-
+  check is deliberately left failing on Tumbleweed rather than worked around,
+  because "install succeeded when it shouldn't have" is exactly the class of
+  thing this repo exists to catch.
 
 ## Running it
 
@@ -212,21 +220,31 @@ the target list in `matrix.json`.
 
 ### Adding a target
 
-Append an object to `matrix.json`:
+Add an object to `matrix.json`, placed in `released` order (oldest first) —
+that's also the order the grid's rows and the Actions job list follow, and
+it's the axis this whole repo cares about: whether something old still works
+against a rotated key:
 
 ```json
 {
   "id": "debian-14-amd64",
   "name": "Debian 14 / amd64",
+  "distro": "Debian 14",
   "image": "debian:14",
   "family": "debian",
   "platform": "linux/amd64",
   "arch": "amd64",
   "runner": "ubuntu-24.04",
   "qemu": false,
-  "tier": "broad"
+  "tier": "broad",
+  "released": "2027-06"
 }
 ```
+
+`released` is an approximate GA month (`"rolling"` for a rolling release like
+Tumbleweed, which always sorts last). It's cosmetic — nothing enforces the
+order — but keeping it means a glance at the grid answers "how far back does
+this still work" without cross-referencing anything else.
 
 `tier` is one of `core`, `broad`, `qemu`. Set `qemu: true` (and leave `runner`
 as an amd64 runner) for any platform that needs binfmt emulation —
