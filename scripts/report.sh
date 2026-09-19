@@ -56,6 +56,34 @@ status_icon() {
   esac
 }
 
+# Official brand mark for a distro name, via Simple Icons' CDN (their default
+# brand colour, no API key, no local asset to keep in sync). Matched on
+# substrings of the "distro" field rather than the id, so "RHEL 8 (UBI)" and
+# "RHEL 9 (UBI)" share one lookup instead of needing a per-version entry.
+distro_icon_slug() {
+  case "$1" in
+    *Debian*)     printf 'debian'     ;;
+    *Ubuntu*)     printf 'ubuntu'     ;;
+    *Fedora*)     printf 'fedora'     ;;
+    *RHEL*)       printf 'redhat'     ;;
+    *Rocky*)      printf 'rockylinux' ;;
+    *AlmaLinux*)  printf 'almalinux'  ;;
+    *CentOS*)     printf 'centos'     ;;
+    *openSUSE*)   printf 'opensuse'   ;;
+    *Arch*)       printf 'archlinux'  ;;
+    *)            printf ''           ;;
+  esac
+}
+
+distro_label() { # distro_label <distro name>
+  local slug icon=""
+  slug="$(distro_icon_slug "$1")"
+  if [ -n "$slug" ]; then
+    icon="<img src=\"https://cdn.simpleicons.org/${slug}\" width=\"16\" height=\"16\" valign=\"middle\" alt=\"\"> "
+  fi
+  printf '%s%s' "$icon" "$1"
+}
+
 render_grid() {
   local dir="${1:-results}" matrix="${2:-matrix.json}"
 
@@ -82,7 +110,7 @@ render_grid() {
   out "$sep"
 
   for d in "${distros[@]}"; do
-    row="| ${d} |"
+    row="| $(distro_label "$d") |"
     for a in "${arches[@]}"; do
       id="$(jq -r --arg d "$d" --arg a "$a" \
         'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
