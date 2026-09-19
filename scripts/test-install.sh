@@ -10,7 +10,7 @@
 #   4. run it, and see that it worked
 #
 # Each step also asserts the signing that is supposed to protect it. A final
-# counter-check repeats the same four steps pinned to the superseded key and
+# wrong-key test repeats the same four steps pinned to the superseded key and
 # requires them to fail — otherwise "the signature was checked" means nothing.
 #
 set -uo pipefail
@@ -348,19 +348,19 @@ run_cli() {
 }
 
 # ===========================================================================
-# Counter-check — the same four steps, pinned to the superseded key
+# Wrong-key test — the same four steps, pinned to the superseded key
 #
 # Without this the run above only proves that installing works, not that the
 # signature was ever what made it work.
 # ===========================================================================
 
 wrong_key_is_refused() {
-  info "Counter-check: the superseded key must not work"
+  info "Wrong-key test: the superseded key must not work"
 
   curl -fsSL --retry 3 -o "$WORK/legacy.gpg" \
     "${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}" 2>/dev/null
   if [ ! -s "$WORK/legacy.gpg" ]; then
-    note "counter-check skipped" \
+    note "wrong-key test skipped" \
       "no key served at ${JOTTA_HOST}${JOTTA_KEY_PATH_LEGACY}"
     return 0
   fi
@@ -368,7 +368,7 @@ wrong_key_is_refused() {
   # Start from nothing: no package, no good repository, no trusted good key.
   repo_uninstall >/dev/null 2>&1
   repo_forget jotta-cli "$JOTTA_EXPECTED_FPR"
-  check_fails "package removed before the counter-check" package_installed
+  check_fails "package removed before the wrong-key test" package_installed
 
   repo_add jotta-legacy "$WORK/legacy.gpg"
 

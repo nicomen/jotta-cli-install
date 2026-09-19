@@ -37,7 +37,7 @@ JOTTA_KEY_URL="${JOTTA_KEY_URL:-${JOTTA_HOST}${JOTTA_KEY_PATH}}"
 log()  { printf '%s\n' "$*"; }
 # Also drops a "phase" marker into the results file (ignored by pass/fail
 # counting, same as "info") so the grid can tell which numbered step a given
-# check happened under — install (1-3, plus the counter-check) vs run (4).
+# check happened under.
 info() {
   printf '\n\033[1m==> %s\033[0m\n' "$*"
   record_result "PHASE: $*" phase ""

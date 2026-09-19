@@ -12,7 +12,7 @@
 #     download doesn't match that pin
 #
 # So the four steps become: fetch the PKGBUILD, build it (which is where the
-# pinned hash is actually checked), install the result, run it. A counter-check
+# pinned hash is actually checked), install the result, run it. A wrong-key test
 # at the end corrupts the pin and requires the build to fail — otherwise the
 # pin would not be proven to do anything.
 #
@@ -122,14 +122,14 @@ run_cli() {
 }
 
 # ===========================================================================
-# Counter-check — a corrupted pin must not build
+# Wrong-key test — a corrupted pin must not build
 # ===========================================================================
 
 corrupted_pin_is_refused() {
-  info "Counter-check: a corrupted pinned checksum must not build"
+  info "Wrong-key test: a corrupted pinned checksum must not build"
 
   if [ ! -d "$BUILD_DIR" ]; then
-    note "counter-check skipped" "no PKGBUILD to corrupt"
+    note "wrong-key test skipped" "no PKGBUILD to corrupt"
     return 0
   fi
 
