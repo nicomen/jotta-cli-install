@@ -43,10 +43,13 @@ shown only in the failing-checks list.
 | <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian 13 (trixie) | ✅/✅ | ✅/✅ | ✅/✅ | ✅/✅ |
 | <img src="https://cdn.simpleicons.org/fedora" width="16" height="16" valign="middle" alt=""> Fedora (latest) | ✅/✅ | ✅/✅ | · | · |
 | <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 26.04 LTS | ✅/✅ | ✅/✅ | · | · |
-| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | ❌/✅ | ❌/✅ | · | · |
+| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | ✅/✅ | ✅/✅ | · | · |
 
-Each cell is install/run. ✅ passed · ❌ failed · — not reached (an earlier phase failed) ·
-⏳ not run in this tier · · not published for that architecture
+Each cell is install/execution. ✅ passed · ❌ failed · — not reached (an earlier
+phase failed) · ⏳ not run in this tier · · not published for that architecture.
+The wrong-key test isn'\''t install or execution, so it's excluded from
+both — see "Failing checks" below if either column looks passing but something
+still failed.
 
 **Failing checks**
 
@@ -57,7 +60,7 @@ Each cell is install/run. ✅ passed · ❌ failed · — not reached (an earlie
 | nothing was installed by the refused attempt | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-19 23:31 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35476069863)</sub>
+<sub>2026-09-19 23:44 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35476766461)</sub>
 
 <!-- STATUS:END -->
 
