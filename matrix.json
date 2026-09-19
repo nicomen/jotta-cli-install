@@ -349,6 +349,18 @@
       "tier": "broad"
     },
     {
+      "id": "opensuse-tumbleweed-amd64",
+      "name": "openSUSE Tumbleweed / amd64",
+      "distro": "openSUSE Tumbleweed",
+      "image": "opensuse/tumbleweed",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
       "id": "opensuse-leap-15.6-amd64",
       "name": "openSUSE Leap 15.6 / amd64",
       "distro": "openSUSE Leap 15.6",
@@ -365,6 +377,18 @@
       "name": "CentOS Stream 9 / arm64",
       "distro": "CentOS Stream 9",
       "image": "quay.io/centos/centos:stream9",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad"
+    },
+    {
+      "id": "opensuse-tumbleweed-arm64",
+      "name": "openSUSE Tumbleweed / arm64",
+      "distro": "openSUSE Tumbleweed",
+      "image": "opensuse/tumbleweed",
       "family": "rpm",
       "platform": "linux/arm64",
       "arch": "arm64",
