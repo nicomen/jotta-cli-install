@@ -2,9 +2,7 @@
 #
 # Run the whole matrix locally, the same way CI does, and render the grid.
 #
-#   scripts/run-all.sh                 # broad tier, whatever this host can run
-#   scripts/run-all.sh core            # the four quick legs
-#   scripts/run-all.sh all             # including the emulated ones
+#   scripts/run-all.sh                 # everything this host can run
 #   JOBS=3 scripts/run-all.sh          # three legs at a time
 #
 # CONTAINER_RUNTIME picks the engine (podman or docker; default: whichever is
@@ -17,7 +15,6 @@ ROOT="$(dirname "$HERE")"
 # shellcheck source=scripts/common.sh
 . "$HERE/common.sh"
 
-TIER="${1:-broad}"
 JOBS="${JOBS:-2}"
 RESULTS="${RESULTS:-$ROOT/results}"
 MATRIX="${MATRIX:-$ROOT/matrix.json}"
@@ -31,13 +28,6 @@ fi
 export CONTAINER_RUNTIME
 
 command -v jq >/dev/null 2>&1 || die "jq is required"
-
-case "$TIER" in
-  core)  filter='.tier == "core"' ;;
-  broad) filter='.tier == "core" or .tier == "broad"' ;;
-  all)   filter='true' ;;
-  *)     die "unknown tier: $TIER (want core, broad or all)" ;;
-esac
 
 # Can this host run that platform without binfmt handlers?
 native_platform() { # native_platform <platform>
@@ -76,7 +66,7 @@ while IFS=$'\t' read -r id image platform name; do
   fi
   queue+=("$id"$'\t'"$image"$'\t'"$platform"$'\t'"$name")
   selected=$((selected + 1))
-done < <(jq -r "[.targets[] | select($filter)][] | [.id, .image, .platform, .name] | @tsv" "$MATRIX")
+done < <(jq -r ".targets[] | [.id, .image, .platform, .name] | @tsv" "$MATRIX")
 
 info "${selected} legs to run (${skipped} skipped), ${JOBS} at a time, via ${CONTAINER_RUNTIME}"
 

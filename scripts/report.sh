@@ -55,7 +55,7 @@ status_icon() { # status_icon <pass|fail|missing|none|none_col> [column label]
   case "$status" in
     pass)     glyph='✅'; text="${column}: passed" ;;
     fail)     glyph='❌'; text="${column}: failed" ;;
-    missing)  glyph='⏳'; text="in the matrix, but not run in this tier" ;;
+    missing)  glyph='⏳'; text="in the matrix, but no result yet (run in progress, or its job didn't finish)" ;;
     none)     glyph='—';  text="${column}: not reached — an earlier phase failed" ;;
     none_col) glyph='·';  text="not published for this architecture" ;;
     *)        glyph='·';  text="not published for this architecture" ;;
@@ -166,7 +166,7 @@ render_grid() {
   done
   out ""
   out "Each cell is install/execution. ✅ passed · ❌ failed · — not reached (an earlier"
-  out "phase failed) · ⏳ not run in this tier · · not published for that architecture."
+  out "phase failed) · ⏳ no result yet (run in progress) · · not published for that architecture."
 
   [ "$any" -eq 1 ] || return 0
   [ "$worst" = pass ]

@@ -9,14 +9,6 @@ on:
     - cron: '17 5 * * *'
   workflow_dispatch:
     inputs:
-      tier:
-        description: 'Which targets to run'
-        type: choice
-        default: all
-        options:
-          - core    # 4 legs, amd64 only — quick smoke
-          - broad   # amd64 + arm64 across every distro family
-          - all     # broad, plus armhf and i386 under QEMU (the default)
       host:
         description: 'Repository host to test'
         type: string
@@ -97,19 +89,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select targets for tier "${{ inputs.tier || 'all' }}"
+      - name: Select targets
         id: build
-        env:
-          TIER: ${{ inputs.tier || 'all' }}
         run: |
           set -euo pipefail
-          case "$TIER" in
-            core)  filter='.tier == "core"' ;;
-            broad) filter='.tier == "core" or .tier == "broad"' ;;
-            all)   filter='true' ;;
-            *)     echo "unknown tier: $TIER" >&2; exit 1 ;;
-          esac
-          matrix="$(jq -c "[.targets[] | select($filter)]" matrix.json)"
+          matrix="$(jq -c '.targets' matrix.json)"
           echo "matrix=$matrix"          >> "$GITHUB_OUTPUT"
           echo "count=$(jq length <<<"$matrix")" >> "$GITHUB_OUTPUT"
           jq -r '.[] | "- \(.name)  [\(.image) \(.platform)]"' <<<"$matrix" \
@@ -171,7 +155,7 @@ jobs:
           {
             echo "## jotta-cli install matrix"
             echo ""
-            echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\` · tier: \`${{ inputs.tier || 'all' }}\`"
+            echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\`"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
           scripts/report.sh --grid results || true
