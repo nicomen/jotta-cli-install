@@ -469,6 +469,32 @@
       "released": "2025-06"
     },
     {
+      "id": "registry.suse.com-bci-bci-base-latest-amd64",
+      "name": "SLES 15 SP7 / amd64",
+      "distro": "SLES 15 SP7",
+      "image": "registry.suse.com/bci/bci-base:latest",
+      "family": "rpm",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "tier": "broad",
+      "released": "2025-07"
+    },
+    {
+      "id": "registry.suse.com-bci-bci-base-latest-arm64",
+      "name": "SLES 15 SP7 / arm64",
+      "distro": "SLES 15 SP7",
+      "image": "registry.suse.com/bci/bci-base:latest",
+      "family": "rpm",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "tier": "broad",
+      "released": "2025-07"
+    },
+    {
       "id": "debian-13-amd64",
       "name": "Debian 13 (trixie) / amd64",
       "distro": "Debian 13 (trixie)",

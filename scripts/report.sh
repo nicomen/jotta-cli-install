@@ -99,6 +99,7 @@ distro_icon_slug() {
     *AlmaLinux*)  printf 'almalinux'  ;;
     *CentOS*)     printf 'centos'     ;;
     *openSUSE*)   printf 'opensuse'   ;;
+    *SLES*)       printf 'suse'       ;;
     *Arch*)       printf 'archlinux'  ;;
     *)            printf ''           ;;
   esac
