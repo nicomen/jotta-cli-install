@@ -67,6 +67,10 @@ leg_phase_status() { # leg_phase_status <results-dir> <target-id> <install|run>
   [ -s "$file" ] || { printf 'none\n'; return; }
 
   awk -F'\t' -v want="$want" '
+    # A failure before any phase marker (bootstrap itself dying, e.g. Debian
+    # 11s apt-get install failing) is still an install-time failure, not a
+    # blank -- default the bucket accordingly rather than leaving it unset.
+    BEGIN                          { bucket = "install" }
     /^PHASE: 4\./                 { bucket = "run"; next }
     /^PHASE: [1-3]\./             { bucket = "install"; next }
     /^PHASE: Counter-check/       { bucket = "install"; next }
