@@ -37,13 +37,15 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 | Failing check | Legs |
 |---|---|
+| build produced a package | aur |
 | fatal error | debian-11-amd64, debian-11-arm64 |
 | install from the superseded-key repository is refused | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
 | key has the pinned fingerprint DD0330E486A55840D37BDE77068CACA1BBF96E71 | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
+| makepkg builds jotta-cli (downloads and verifies the pinned SHA256) | aur |
 | nothing was installed by the refused attempt | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-19 00:54 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35410587715)</sub>
+<sub>2026-09-19 00:59 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35410983228)</sub>
 
 <!-- STATUS:END -->
 
