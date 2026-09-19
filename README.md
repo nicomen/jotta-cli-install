@@ -22,12 +22,16 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 | Ubuntu 26.04 LTS | ✅ | ✅ | · | · |
 | Fedora (latest) | ✅ | ✅ | · | · |
 | Fedora 40 | ✅ | ✅ | · | · |
+| Rocky Linux 10 | ✅ | ✅ | · | · |
 | Rocky Linux 9 | ✅ | ✅ | · | · |
 | RHEL 8 (UBI) | ❌ | ❌ | · | · |
 | AlmaLinux 8 | ❌ | ❌ | · | · |
+| RHEL 10 (UBI) | ✅ | ✅ | · | · |
 | RHEL 9 (UBI) | ✅ | ✅ | · | · |
+| AlmaLinux 10 | ✅ | ✅ | · | · |
 | AlmaLinux 9 | ✅ | ✅ | · | · |
 | CentOS Stream 9 | ✅ | ✅ | · | · |
+| CentOS Stream 10 | ✅ | ✅ | · | · |
 | openSUSE Tumbleweed | ❌ | ❌ | · | · |
 | openSUSE Leap 15.6 | ✅ | ✅ | · | · |
 
@@ -45,7 +49,7 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 | nothing was installed by the refused attempt | opensuse-tumbleweed-amd64, opensuse-tumbleweed-arm64 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-19 09:32 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35434825251)</sub>
+<sub>2026-09-19 10:55 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35438549423)</sub>
 
 <!-- STATUS:END -->
 
