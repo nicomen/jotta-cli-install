@@ -148,15 +148,19 @@ Notes from actually running this:
 
 ### On GitHub
 
-Pushes, pull requests and a daily 05:17 UTC cron run the **broad** tier.
-`workflow_dispatch` lets you pick the tier and point the run at another host or
-suite:
+Pushes, pull requests and a daily 05:17 UTC cron all run the **all** tier —
+`inputs.tier` only exists on a manual `workflow_dispatch` run, so every other
+trigger falls back to it. `workflow_dispatch` lets you pick a narrower tier
+instead, and point the run at another host or suite:
 
 | Tier | Legs | What |
 |---|---|---|
 | `core` | 4 | Debian 12, Ubuntu 24.04, Fedora, Rocky 9 — amd64 only |
-| `broad` (default) | 18 | 9 distros × amd64 + arm64 |
-| `all` | 22 | broad, plus Debian armhf and i386 under QEMU |
+| `broad` | 40 | every distro × amd64 + arm64 |
+| `all` (default) | 46 | broad, plus Debian armhf and i386 under QEMU |
+
+The `keys` and `aur` jobs aren't part of the tier/matrix at all — they run on
+every trigger regardless of which tier the matrix uses.
 
 arm64 legs use GitHub's `ubuntu-24.04-arm` runners, which are free for public
 repositories.

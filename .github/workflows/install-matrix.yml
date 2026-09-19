@@ -12,11 +12,11 @@ on:
       tier:
         description: 'Which targets to run'
         type: choice
-        default: broad
+        default: all
         options:
           - core    # 4 legs, amd64 only — quick smoke
           - broad   # amd64 + arm64 across every distro family
-          - all     # broad, plus armhf and i386 under QEMU
+          - all     # broad, plus armhf and i386 under QEMU (the default)
       host:
         description: 'Repository host to test'
         type: string
@@ -97,10 +97,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select targets for tier "${{ inputs.tier || 'broad' }}"
+      - name: Select targets for tier "${{ inputs.tier || 'all' }}"
         id: build
         env:
-          TIER: ${{ inputs.tier || 'broad' }}
+          TIER: ${{ inputs.tier || 'all' }}
         run: |
           set -euo pipefail
           case "$TIER" in
@@ -171,7 +171,7 @@ jobs:
           {
             echo "## jotta-cli install matrix"
             echo ""
-            echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\` · tier: \`${{ inputs.tier || 'broad' }}\`"
+            echo "Host: \`$JOTTA_HOST\` · suite: \`$JOTTA_DEB_SUITE\` · tier: \`${{ inputs.tier || 'all' }}\`"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
           scripts/report.sh --grid results || true
