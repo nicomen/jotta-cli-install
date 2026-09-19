@@ -47,7 +47,11 @@ bootstrap() {
   # --needed skips whatever is already there, same intent as ensure_commands
   # in common.sh, but pacman does it natively so there is no need to reinvent
   # that logic for a fifth package manager.
-  pacman -S --needed --noconfirm --quiet fakeroot curl git sudo >/dev/null
+  # fakeroot: required by makepkg to run package() with faked ownership.
+  # debugedit: the PKGBUILD doesn't disable debug-package generation, and
+  # without it makepkg aborts before even downloading anything ("Cannot find
+  # the debugedit binary") -- found by actually running this in CI.
+  pacman -S --needed --noconfirm --quiet fakeroot debugedit curl git sudo >/dev/null
 
   id -u "$BUILD_USER" >/dev/null 2>&1 || useradd -m "$BUILD_USER"
   printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$BUILD_USER" > "/etc/sudoers.d/${BUILD_USER}"

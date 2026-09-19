@@ -165,17 +165,20 @@ bootstrap() {
       use_debian_archive_if_eol
       apt-get update -qq
       ensure_commands apt \
-        curl:curl gpg:gnupg ps:procps killall:psmisc su:util-linux useradd:passwd
+        curl:curl gpg:gnupg ps:procps killall:psmisc su:util-linux \
+        useradd:passwd awk:gawk
       ;;
     dnf|yum)
       ensure_commands "$PKG_MGR" \
         curl:curl gpg:gnupg2 ps:procps-ng killall:psmisc \
-        su:util-linux useradd:shadow-utils
+        su:util-linux useradd:shadow-utils awk:gawk
       ;;
     zypper)
       zypper --non-interactive --quiet refresh >/dev/null
+      # Tumbleweed's base image, unlike Leap's, ships without awk at all.
       ensure_commands zypper \
-        curl:curl gpg:gpg2 ps:procps killall:psmisc su:util-linux useradd:shadow
+        curl:curl gpg:gpg2 ps:procps killall:psmisc su:util-linux \
+        useradd:shadow awk:gawk
       ;;
   esac
 }
