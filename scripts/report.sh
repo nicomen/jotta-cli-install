@@ -52,8 +52,33 @@ status_icon() {
     pass)    printf '%s' '✅' ;;
     fail)    printf '%s' '❌' ;;
     missing) printf '%s' '⏳' ;;   # in the matrix, no result this run
-    *)       printf '%s' '·'  ;;   # not a published target
+    none)     printf '%s' '—' ;;   # ran, but never reached this phase
+    none_col) printf '%s' '·' ;;   # not a published target (whole column)
+    *)        printf '%s' '·' ;;
   esac
+}
+
+# Which numbered step (from info()'s "PHASE: N. ..." markers, see common.sh)
+# a check happened under, bucketed into "install" (steps 1-3, plus the
+# counter-check — signature enforcement is an install-time property) or
+# "run" (step 4, the daemon smoke test). Prints: pass | fail | none
+leg_phase_status() { # leg_phase_status <results-dir> <target-id> <install|run>
+  local file="$1/$2/results.tsv" want="$3"
+  [ -s "$file" ] || { printf 'none\n'; return; }
+
+  awk -F'\t' -v want="$want" '
+    /^PHASE: 4\./                 { bucket = "run"; next }
+    /^PHASE: [1-3]\./             { bucket = "install"; next }
+    /^PHASE: Counter-check/       { bucket = "install"; next }
+    $2 == "pass" || $2 == "fail"  {
+      if (bucket == want) { seen = 1; if ($2 == "fail") failed = 1 }
+    }
+    END {
+      if (!seen)      print "none"
+      else if (failed) print "fail"
+      else             print "pass"
+    }
+  ' "$file"
 }
 
 # Official brand mark for a distro name, via Simple Icons' CDN (their default
@@ -115,18 +140,26 @@ render_grid() {
       id="$(jq -r --arg d "$d" --arg a "$a" \
         'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
       if [ -z "$id" ]; then
-        st=none
+        row+=" $(status_icon none_col) |"
       else
         st="$(leg_status "$dir" "$id")"
         any=1
         if [ "$st" = fail ]; then worst=fail; fi
+        if [ "$st" = missing ]; then
+          row+=" $(status_icon missing) |"
+        else
+          local i_st r_st
+          i_st="$(leg_phase_status "$dir" "$id" install)"
+          r_st="$(leg_phase_status "$dir" "$id" run)"
+          row+=" $(status_icon "$i_st")/$(status_icon "$r_st") |"
+        fi
       fi
-      row+=" $(status_icon "$st") |"
     done
     out "$row"
   done
   out ""
-  out "✅ passed · ❌ failed · ⏳ not run in this tier · · not published for that architecture"
+  out "Each cell is install/run. ✅ passed · ❌ failed · — not reached (an earlier phase failed) ·"
+  out "⏳ not run in this tier · · not published for that architecture"
 
   [ "$any" -eq 1 ] || return 0
   [ "$worst" = pass ]

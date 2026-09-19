@@ -35,7 +35,13 @@ JOTTA_KEY_URL="${JOTTA_KEY_URL:-${JOTTA_HOST}${JOTTA_KEY_PATH}}"
 # ---------------------------------------------------------------------------
 
 log()  { printf '%s\n' "$*"; }
-info() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
+# Also drops a "phase" marker into the results file (ignored by pass/fail
+# counting, same as "info") so the grid can tell which numbered step a given
+# check happened under — install (1-3, plus the counter-check) vs run (4).
+info() {
+  printf '\n\033[1m==> %s\033[0m\n' "$*"
+  record_result "PHASE: $*" phase ""
+}
 warn() { printf '  !! %s\n' "$*" >&2; }
 # A fatal error must leave a trace in the results, not just on stderr — a
 # results.tsv with zero pass/fail rows (the script died before any check())
