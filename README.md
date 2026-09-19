@@ -70,6 +70,14 @@ starting from a clean state (package removed, good repo and good key forgotten).
 It must fail, and must leave nothing installed. Without it, the run above would
 only prove that installing works — not that the signature is what made it work.
 
+Once, on Arch Linux (`scripts/test-install-aur.sh`) — jotta maintains an
+[official AUR package](https://aur.archlinux.org/packages/jotta-cli), a
+fundamentally different trust model from the repositories above: there is no
+live GPG check, `makepkg` instead refuses to build unless the download
+matches a SHA256 **pinned inside the PKGBUILD itself**. The four steps become
+fetch the PKGBUILD, build (where the pin is checked), install, run — plus a
+counter-check that corrupts the pin and requires the build to fail.
+
 Once per run, on the host (`scripts/check-keys.sh`):
 
 - every published key path on **both** hosts (`repo.jotta.cloud`, `repo.jotta.us`)

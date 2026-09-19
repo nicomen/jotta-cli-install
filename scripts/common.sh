@@ -281,3 +281,120 @@ pkg_arch() {
     uname -m
   fi
 }
+
+
+# ---------------------------------------------------------------------------
+# jotta-cli / jottad — shared by every install method (apt, dnf, zypper, AUR).
+#
+# The caller must, before using anything below:
+#   - define installed_version(), which asks whatever packaging system it used
+#   - set $WORK to a scratch directory (start_daemon_and_talk_to_it logs there)
+# ---------------------------------------------------------------------------
+
+check_binaries_and_run() {
+  check "jotta-cli is on PATH"   test -x /usr/bin/jotta-cli
+  check "jottad is on PATH"      test -x /usr/bin/jottad
+  check "run_jottad is on PATH"  test -x /usr/bin/run_jottad
+
+  local cli_version pkg_version
+  cli_version="$(cli_version_of jotta-cli)"
+  pkg_version="$(installed_version)"
+  note "jotta-cli version" "${cli_version:-<none>}"
+  check "CLI version matches the installed package" \
+    versions_agree "$cli_version" "$pkg_version"
+
+  start_daemon_and_talk_to_it
+}
+
+# `jotta-cli version` prints two different shapes:
+#   connected  (stdout)  "jotta-cli version : 0.17.176206"  inside a table
+#   no daemon  (stderr)  "jotta-cli version 0.17.176206"    before the error
+# so merge the streams and accept either. Pass "jottad" for the daemon's own
+# version out of the connected form.
+cli_version_of() { # cli_version_of <jotta-cli|jottad> [user] [runtime-dir]
+  local what="$1" user="${2:-}" rt="${3:-}" raw
+  if [ -n "$user" ]; then
+    raw="$(su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli version" 2>&1)"
+  else
+    raw="$(/usr/bin/jotta-cli version 2>&1)"
+  fi
+  printf '%s\n' "$raw" |
+    sed -n "s/^[[:space:]]*${what} version[[:space:]]*:\?[[:space:]]*\([0-9][0-9._-]*\).*/\1/p" |
+    head -n1
+}
+
+# The package version carries a packaging suffix the binary does not, so the
+# binary's version must appear inside it. Empty never counts as a match.
+versions_agree() { # versions_agree <from-binary> <from-package>
+  [ -n "$1" ] && [ -n "$2" ] || { printf 'binary=%s package=%s\n' "${1:-<empty>}" "${2:-<empty>}"; return 1; }
+  case "$2" in
+    *"$1"*) return 0 ;;
+  esac
+  printf 'binary=%s package=%s\n' "$1" "$2"
+  return 1
+}
+
+start_daemon_and_talk_to_it() {
+  local user=jottatest uid rt
+  id -u "$user" >/dev/null 2>&1 || useradd -m "$user" >/dev/null 2>&1
+  uid="$(id -u "$user")" || { note "daemon skipped" "could not create a test user"; return 0; }
+
+  # jottad runs per user and wants XDG_RUNTIME_DIR. Containers have no logind,
+  # so create that directory by hand.
+  rt="/run/user/$uid"
+  mkdir -p "$rt" && chown "$user" "$rt" && chmod 700 "$rt"
+
+  # JOTTAD_SYSTEMD=0 makes the shipped launcher fork the daemon directly
+  # instead of going through `systemctl --user`, which a container lacks.
+  su -l "$user" -c \
+    "XDG_RUNTIME_DIR=$rt JOTTAD_SYSTEMD=0 JOTTAD_AUTOSTART=0 setsid run_jottad" \
+    > "$WORK/jottad.log" 2>&1
+
+  # Ready means "the CLI can talk to it", not "a file appeared where I guessed":
+  # with no user session jottad listens on 127.0.0.1:14443 rather than on the
+  # unix socket it uses under logind.
+  local failed_before=$CHECKS_FAILED i ready=1
+  for i in $(seq 1 "${JOTTA_DAEMON_TIMEOUT:-90}"); do
+    if su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli version" >/dev/null 2>&1; then
+      ready=0
+      break
+    fi
+    sleep 1
+  done
+  check "jotta-cli reaches jottad (within ${i}s)" test "$ready" -eq 0
+
+  if [ -S "$rt/jottad/jottad.socket" ]; then
+    note "daemon endpoint" "unix://$rt/jottad/jottad.socket"
+  else
+    note "daemon endpoint" "tcp://127.0.0.1:14443 (no user session, so no unix socket)"
+  fi
+
+  # The daemon and the CLI ship in the same package, so they must agree.
+  local daemon_version
+  daemon_version="$(cli_version_of jottad "$user" "$rt")"
+  note "jottad version" "${daemon_version:-<none>}"
+  check "jottad version matches the installed package" \
+    versions_agree "$daemon_version" "$(installed_version)"
+
+  # Nobody is logged in, so this reports that. Recorded, never fatal.
+  note "jotta-cli status" \
+    "$(su -l "$user" -c "XDG_RUNTIME_DIR=$rt jotta-cli status" 2>&1 | _oneline)"
+
+  if [ "$CHECKS_FAILED" -gt "$failed_before" ]; then
+    log "  --   jottad startup log:"
+    sed 's/^/       /' "$WORK/jottad.log" | head -n 40
+  fi
+
+  su -l "$user" -c "XDG_RUNTIME_DIR=$rt JOTTAD_KILL=1 run_jottad" >/dev/null 2>&1
+  return 0
+}
+
+
+# Run one step and report whether every check inside it passed, so a step
+# that cannot possibly succeed does not drag a dozen dependent checks down
+# with it. Shared by every install script.
+step() { # step <function>
+  local before=$CHECKS_FAILED
+  "$1"
+  [ "$CHECKS_FAILED" -eq "$before" ]
+}

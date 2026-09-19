@@ -62,6 +62,31 @@ jobs:
           name: results-keys
           path: results/
 
+  aur:
+    name: AUR package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build, install and run the AUR package
+        run: |
+          mkdir -p results/aur
+          JOTTA_RESULTS="$PWD/results/aur/results.tsv" scripts/test-install-aur.sh
+
+      - name: Report
+        if: always()
+        run: scripts/report.sh "AUR package (jotta-cli)" results/aur/results.tsv || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results-aur
+          path: results/
+          if-no-files-found: warn
+
   plan:
     name: plan
     runs-on: ubuntu-24.04
@@ -97,7 +122,7 @@ jobs:
     timeout-minutes: ${{ matrix.target.qemu && 60 || 30 }}
     strategy:
       fail-fast: false
-      max-parallel: 8
+      max-parallel: 20
       matrix:
         target: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
@@ -126,7 +151,7 @@ jobs:
 
   summary:
     name: summary
-    needs: [keys, install]
+    needs: [keys, install, aur]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 10
