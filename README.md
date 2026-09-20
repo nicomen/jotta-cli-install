@@ -51,7 +51,7 @@ phase failed) · ⏳ not run in this tier · · not published for that architect
 | fatal error | debian-11-amd64, debian-11-arm64, debian-11-armhf, debian-11-i386 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-19 23:50 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35477004551)</sub>
+<sub>2026-09-20 09:55 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35503289233)</sub>
 
 <!-- STATUS:END -->
 
