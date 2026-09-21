@@ -115,12 +115,16 @@ Established while writing this (2026-09-18):
 `jotta-cli` itself, decoupled from which distro runs it. Confirmed: its
 `Packages`/`repomd.xml` list a different, unrelated version history from the
 stable suite's (`0.17.176171…` vs `0.17.176206…`), and the RPM side has the
-identical split at `/redhat-unstable`. Two legs test this directly —
-`jotta-cli unstable channel (Debian 12)` and `(Rocky 9)` — installing jotta's
-unstable channel on an otherwise perfectly ordinary, stable OS, so the OS
-itself isn't a variable. This is a different question from "does a rolling
-*OS* work" (`Debian sid`, `openSUSE Tumbleweed`), which installs jotta's
-normal stable channel on a rolling distro instead.
+identical split at `/redhat-unstable`. Since an unstable build can carry new
+packaging (scripts, dependencies, file layout) that behaves differently
+across OS versions in ways the version number alone wouldn't reveal, every
+distro/arch leg in the matrix has a `— jotta unstable channel` twin pointed
+at that repo instead — doubles the matrix, but "does the new packaging work
+on distro X" and "is distro X's own repo access still fine" are genuinely
+different questions, and testing unstable on only one OS per family would
+have quietly assumed they weren't. This is a different question from "does a
+rolling *OS* work" (`Debian sid`, `openSUSE Tumbleweed`), which installs
+jotta's normal stable channel on a rolling distro instead.
 
 ### Two keys are served, and only one of them is live
 
