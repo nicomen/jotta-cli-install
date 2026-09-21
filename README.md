@@ -14,7 +14,6 @@ daemon that won't start. That's what the grid's two columns are: **install**
 ## Status
 
 <!-- STATUS:BEGIN -->
-
 | Distro | Released | EOL | amd64 | arm64 | armhf | i386 |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|
 | <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 8 (UBI) | 2019-05-07 | 2029-05-31 | <span title="install: failed">❌</span>/<span title="execution: not reached — an earlier phase failed">—</span> | <span title="install: failed">❌</span>/<span title="execution: not reached — an earlier phase failed">—</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
@@ -55,7 +54,7 @@ in READMEs), so there's no interactive re-sort — this fixed order is the usefu
 | fatal error | debian-11-amd64, debian-11-arm64, debian-11-armhf, debian-11-i386 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-21 08:18 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35576801598)</sub>
+<sub>2026-09-21 08:25 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35577424985)</sub>
 
 <!-- STATUS:END -->
 
