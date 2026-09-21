@@ -132,7 +132,7 @@ render_grid() {
   mapfile -t arches  < <(jq -r "[.targets[].arch]   | ${ordered} | .[]" "$matrix")
   mapfile -t distros < <(jq -r "[.targets[].distro] | ${ordered} | .[]" "$matrix")
 
-  local header="| Distro |" sep="|---|"
+  local header="| Distro | Released | EOL |" sep="|---|:-:|:-:|"
   local a d id st row worst=pass any=0
   for a in "${arches[@]}"; do
     header+=" ${a} |"
@@ -141,8 +141,21 @@ render_grid() {
   out "$header"
   out "$sep"
 
+  local today
+  today="$(date -u +%Y-%m-%d)"
+
   for d in "${distros[@]}"; do
-    row="| $(distro_label "$d") |"
+    local released eol eol_cell
+    released="$(jq -r --arg d "$d" 'first(.targets[] | select(.distro == $d) | .released) // "?"' "$matrix")"
+    eol="$(jq -r --arg d "$d" 'first(.targets[] | select(.distro == $d) | .eol) // "?"' "$matrix")"
+    if [ "$eol" = rolling ]; then
+      eol_cell="rolling"
+    elif [[ "$eol" < "$today" ]]; then
+      eol_cell="⚠️ ${eol}"   # already past EOL as of today
+    else
+      eol_cell="$eol"
+    fi
+    row="| $(distro_label "$d") | ${released} | ${eol_cell} |"
     for a in "${arches[@]}"; do
       id="$(jq -r --arg d "$d" --arg a "$a" \
         'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
@@ -167,6 +180,9 @@ render_grid() {
   out ""
   out "Each cell is install/execution. ✅ passed · ❌ failed · — not reached (an earlier"
   out "phase failed) · ⏳ no result yet (run in progress) · · not published for that architecture."
+  out "⚠️ next to an EOL date means it's already past that date as of today. Rows are"
+  out "sorted oldest-release-first; GitHub renders this as a static table (no JS allowed"
+  out "in READMEs), so there's no interactive re-sort — this fixed order is the useful one."
 
   [ "$any" -eq 1 ] || return 0
   [ "$worst" = pass ]
