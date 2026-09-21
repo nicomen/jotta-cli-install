@@ -29,11 +29,13 @@ trap 'rm -f "$block"' EXIT
 
 repo="${GITHUB_REPOSITORY:-jotta/jotta-cli-issues}"
 server="${GITHUB_SERVER_URL:-https://github.com}"
-workflow='install-matrix.yml'
 
 {
-  printf '\n[![install matrix](%s/%s/actions/workflows/%s/badge.svg)](%s/%s/actions/workflows/%s)\n\n' \
-    "$server" "$repo" "$workflow" "$server" "$repo" "$workflow"
+  # No overall pass/fail badge here on purpose: several legs are *designed*
+  # to fail (RHEL 8's ed25519 gap, Debian 11/Fedora 40's EOL mirrors,
+  # Tumbleweed's zypper gap, ...), so the workflow's aggregate status is
+  # essentially always red. That's not a useful "is something wrong" signal
+  # for this repo -- the grid below is. See the per-leg cells instead.
 
   # scripts/report.sh writes to $GITHUB_STEP_SUMMARY when it is set; unset it
   # here so the same renderer writes to stdout instead.

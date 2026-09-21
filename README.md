@@ -15,8 +15,6 @@ daemon that won't start. That's what the grid's two columns are: **install**
 
 <!-- STATUS:BEGIN -->
 
-[![install matrix](https://github.com/nicomen/jotta-cli-install/actions/workflows/install-matrix.yml/badge.svg)](https://github.com/nicomen/jotta-cli-install/actions/workflows/install-matrix.yml)
-
 | Distro | Released | EOL | amd64 | arm64 | armhf | i386 |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|
 | <img src="https://cdn.simpleicons.org/redhat" width="16" height="16" valign="middle" alt=""> RHEL 8 (UBI) | 2019-05-07 | 2029-05-31 | <span title="install: failed">❌</span>/<span title="execution: not reached — an earlier phase failed">—</span> | <span title="install: failed">❌</span>/<span title="execution: not reached — an earlier phase failed">—</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
