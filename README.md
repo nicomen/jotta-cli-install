@@ -40,6 +40,9 @@ daemon that won't start. That's what the grid's two columns are: **install**
 | <img src="https://cdn.simpleicons.org/ubuntu" width="16" height="16" valign="middle" alt=""> Ubuntu 26.04 LTS | 2026-04-23 | 2031-05-29 | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
 | <img src="https://cdn.simpleicons.org/fedora" width="16" height="16" valign="middle" alt=""> Fedora (latest) | 2026-04-28 | 2027-06-02 | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
 | <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | rolling | rolling | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
+| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> Debian sid (unstable) | rolling | rolling | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
+| <img src="https://cdn.simpleicons.org/debian" width="16" height="16" valign="middle" alt=""> jotta-cli unstable channel (Debian 12) | rolling | rolling | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
+| <img src="https://cdn.simpleicons.org/rockylinux" width="16" height="16" valign="middle" alt=""> jotta-cli unstable channel (Rocky 9) | rolling | rolling | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="install: passed">✅</span>/<span title="execution: passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
 
 Each cell is install/execution. ✅ passed · ❌ failed · — not reached (an earlier
 phase failed) · ⏳ no result yet (run in progress) · · not published for that architecture.
@@ -54,7 +57,7 @@ in READMEs), so there's no interactive re-sort — this fixed order is the usefu
 | fatal error | debian-11-amd64, debian-11-arm64, debian-11-armhf, debian-11-i386 |
 | repository configured to trust only that key | almalinux-8-amd64, almalinux-8-arm64, registry.access.redhat.com-ubi8-ubi-latest-amd64, registry.access.redhat.com-ubi8-ubi-latest-arm64 |
 
-<sub>2026-09-21 08:08 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35575960469)</sub>
+<sub>2026-09-21 08:18 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/35576801598)</sub>
 
 <!-- STATUS:END -->
 
