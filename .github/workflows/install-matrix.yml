@@ -29,6 +29,7 @@ concurrency:
 env:
   JOTTA_HOST: ${{ inputs.host || 'https://repo.jotta.cloud' }}
   JOTTA_DEB_SUITE: ${{ inputs.suite || 'debian' }}
+  JOTTA_RPM_PATH: /redhat
 
 jobs:
   keys:
@@ -118,6 +119,12 @@ jobs:
           PLATFORM: ${{ matrix.target.platform }}
           NEEDS_QEMU: ${{ matrix.target.qemu && '1' || '0' }}
           OUTDIR: ${{ github.workspace }}/results/${{ matrix.target.id }}
+          # Per-target overrides for the two "jotta-cli unstable channel" legs
+          # -- jotta's own pre-release package build, a separate axis from
+          # which OS is running it. Every other leg falls back to the
+          # job-level default (jotta's normal, stable channel).
+          JOTTA_DEB_SUITE: ${{ matrix.target.deb_suite || env.JOTTA_DEB_SUITE }}
+          JOTTA_RPM_PATH: ${{ matrix.target.rpm_path || env.JOTTA_RPM_PATH }}
         run: scripts/run-target.sh
 
       - name: Report

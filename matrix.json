@@ -623,6 +623,88 @@
       "qemu": false,
       "released": "rolling",
       "eol": "rolling"
+    },
+    {
+      "id": "debian-sid-amd64",
+      "name": "Debian sid (unstable) / amd64",
+      "distro": "Debian sid (unstable)",
+      "image": "debian:sid",
+      "family": "debian",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "released": "rolling",
+      "eol": "rolling"
+    },
+    {
+      "id": "debian-sid-arm64",
+      "name": "Debian sid (unstable) / arm64",
+      "distro": "Debian sid (unstable)",
+      "image": "debian:sid",
+      "family": "debian",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "released": "rolling",
+      "eol": "rolling"
+    },
+    {
+      "id": "jotta-unstable-deb-amd64",
+      "name": "jotta-cli unstable channel (deb) / amd64",
+      "distro": "jotta-cli unstable channel (Debian 12)",
+      "image": "debian:12",
+      "family": "debian",
+      "deb_suite": "unstable",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "released": "rolling",
+      "eol": "rolling"
+    },
+    {
+      "id": "jotta-unstable-deb-arm64",
+      "name": "jotta-cli unstable channel (deb) / arm64",
+      "distro": "jotta-cli unstable channel (Debian 12)",
+      "image": "debian:12",
+      "family": "debian",
+      "deb_suite": "unstable",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "released": "rolling",
+      "eol": "rolling"
+    },
+    {
+      "id": "jotta-unstable-rpm-amd64",
+      "name": "jotta-cli unstable channel (rpm) / amd64",
+      "distro": "jotta-cli unstable channel (Rocky 9)",
+      "image": "rockylinux/rockylinux:9",
+      "family": "rpm",
+      "rpm_path": "/redhat-unstable",
+      "platform": "linux/amd64",
+      "arch": "amd64",
+      "runner": "ubuntu-24.04",
+      "qemu": false,
+      "released": "rolling",
+      "eol": "rolling"
+    },
+    {
+      "id": "jotta-unstable-rpm-arm64",
+      "name": "jotta-cli unstable channel (rpm) / arm64",
+      "distro": "jotta-cli unstable channel (Rocky 9)",
+      "image": "rockylinux/rockylinux:9",
+      "family": "rpm",
+      "rpm_path": "/redhat-unstable",
+      "platform": "linux/arm64",
+      "arch": "arm64",
+      "runner": "ubuntu-24.04-arm",
+      "qemu": false,
+      "released": "rolling",
+      "eol": "rolling"
     }
   ]
 }

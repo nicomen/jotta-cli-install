@@ -107,9 +107,20 @@ Established while writing this (2026-09-18):
 | Debian line | `deb [signed-by=/usr/share/keyrings/jotta.gpg] https://repo.jotta.cloud/debian debian main` |
 | Debian suites | `debian`, `unstable` |
 | Debian architectures | `amd64 arm64 armhf i386` |
-| RPM baseurl | `https://repo.jotta.cloud/redhat` |
+| RPM baseurl | `https://repo.jotta.cloud/redhat` (also `/redhat-unstable`) |
 | RPM architectures | `x86_64 aarch64 armv7hl i386` |
 | Latest published version | `0.17.176206` |
+
+`unstable` is **not** an unstable *OS* — it's jotta's own pre-release build of
+`jotta-cli` itself, decoupled from which distro runs it. Confirmed: its
+`Packages`/`repomd.xml` list a different, unrelated version history from the
+stable suite's (`0.17.176171…` vs `0.17.176206…`), and the RPM side has the
+identical split at `/redhat-unstable`. Two legs test this directly —
+`jotta-cli unstable channel (Debian 12)` and `(Rocky 9)` — installing jotta's
+unstable channel on an otherwise perfectly ordinary, stable OS, so the OS
+itself isn't a variable. This is a different question from "does a rolling
+*OS* work" (`Debian sid`, `openSUSE Tumbleweed`), which installs jotta's
+normal stable channel on a rolling distro instead.
 
 ### Two keys are served, and only one of them is live
 

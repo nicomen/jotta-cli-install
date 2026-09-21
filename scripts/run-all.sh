@@ -58,23 +58,24 @@ selected=0
 skipped=0
 declare -a queue=()
 
-while IFS=$'\t' read -r id image platform name; do
+while IFS=$'\t' read -r id image platform name deb_suite rpm_path; do
   if ! native_platform "$platform" && ! binfmt_ready "$platform"; then
     warn "skipping ${name} — ${platform} needs binfmt handlers this host does not have"
     skipped=$((skipped + 1))
     continue
   fi
-  queue+=("$id"$'\t'"$image"$'\t'"$platform"$'\t'"$name")
+  queue+=("$id"$'\t'"$image"$'\t'"$platform"$'\t'"$name"$'\t'"$deb_suite"$'\t'"$rpm_path")
   selected=$((selected + 1))
-done < <(jq -r ".targets[] | [.id, .image, .platform, .name] | @tsv" "$MATRIX")
+done < <(jq -r ".targets[] | [.id, .image, .platform, .name, (.deb_suite // \"\"), (.rpm_path // \"\")] | @tsv" "$MATRIX")
 
 info "${selected} legs to run (${skipped} skipped), ${JOBS} at a time, via ${CONTAINER_RUNTIME}"
 
 running=0
 for entry in "${queue[@]}"; do
-  IFS=$'\t' read -r id image platform name <<< "$entry"
+  IFS=$'\t' read -r id image platform name deb_suite rpm_path <<< "$entry"
   (
     if IMAGE="$image" PLATFORM="$platform" OUTDIR="$RESULTS/$id" \
+       ${deb_suite:+JOTTA_DEB_SUITE="$deb_suite"} ${rpm_path:+JOTTA_RPM_PATH="$rpm_path"} \
        "$HERE/run-target.sh" > "$RESULTS/$id.log" 2>&1; then
       printf '  ok   %s\n' "$name"
     else
