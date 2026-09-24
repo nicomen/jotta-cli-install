@@ -50,41 +50,16 @@ leg_status() {
 # Wraps the emoji in a <span title="..."> so hovering over a cell explains it
 # without needing the legend below — GitHub renders inline HTML in table
 # cells (same as the distro <img> icons already do).
-status_icon() { # status_icon <pass|fail|missing|none|none_col> [column label]
-  local status="$1" column="${2:-}" glyph text
+status_icon() { # status_icon <pass|fail|missing|none_col>
+  local status="$1" glyph text
   case "$status" in
-    pass)     glyph='✅'; text="${column}: passed" ;;
-    fail)     glyph='❌'; text="${column}: failed" ;;
+    pass)     glyph='✅'; text="passed" ;;
+    fail)     glyph='❌'; text="failed" ;;
     missing)  glyph='⏳'; text="in the matrix, but no result yet (run in progress, or its job didn't finish)" ;;
-    none)     glyph='—';  text="${column}: not reached — an earlier phase failed" ;;
     none_col) glyph='·';  text="not published for this architecture" ;;
     *)        glyph='·';  text="not published for this architecture" ;;
   esac
   printf '<span title="%s">%s</span>' "$text" "$glyph"
-}
-
-# Which numbered step (from info()'s "PHASE: N. ..." markers, see common.sh)
-# a check happened under: install (steps 1-3) or run (step 4).
-leg_phase_status() { # leg_phase_status <results-dir> <target-id> <install|run>
-  local file="$1/$2/results.tsv" want="$3"
-  [ -s "$file" ] || { printf 'none\n'; return; }
-
-  awk -F'\t' -v want="$want" '
-    # A failure before any phase marker (bootstrap itself dying, e.g. Debian
-    # 11s apt-get install failing) is still an install-time failure, not a
-    # blank -- default the bucket accordingly rather than leaving it unset.
-    BEGIN                          { bucket = "install" }
-    /^PHASE: 4\./                 { bucket = "run"; next }
-    /^PHASE: [1-3]\./             { bucket = "install"; next }
-    $2 == "pass" || $2 == "fail"  {
-      if (bucket == want) { seen = 1; if ($2 == "fail") failed = 1 }
-    }
-    END {
-      if (!seen)      print "none"
-      else if (failed) print "fail"
-      else             print "pass"
-    }
-  ' "$file"
 }
 
 # Official brand mark for a distro name, via Simple Icons' CDN (their default
@@ -131,14 +106,7 @@ grid_arch_cells() { # grid_arch_cells <results-dir> <matrix> <distro> <arch>
     st="$(leg_status "$dir" "$id")"
     GRID_ANY=1
     [ "$st" = fail ] && GRID_WORST=fail
-    if [ "$st" = missing ]; then
-      out_cells+=" $(status_icon missing) |"
-    else
-      local i_st r_st
-      i_st="$(leg_phase_status "$dir" "$id" install)"
-      r_st="$(leg_phase_status "$dir" "$id" run)"
-      out_cells+=" $(status_icon "$i_st" install)/$(status_icon "$r_st" execution) |"
-    fi
+    out_cells+=" $(status_icon "$st") |"
   done
   printf '%s' "$out_cells"
 }
@@ -220,10 +188,10 @@ render_grid() {
     out "$row"
   done
   out ""
-  out "Each cell is install/execution, for jotta's stable and unstable package"
-  out "channels side by side (see \"What it checks\" for what unstable means)."
-  out "✅ passed · ❌ failed · — not reached (an earlier phase failed) · ⏳ no result"
-  out "yet (run in progress) · · not published for that architecture/channel."
+  out "Each cell is one leg -- jotta's stable and unstable package channels"
+  out "side by side (see \"What it checks\" for what unstable means)."
+  out "✅ passed · ❌ failed · ⏳ no result yet (run in progress) · · not published"
+  out "for that architecture/channel."
   out "⚠️ next to an EOL date means it's already past that date as of today. Rows are"
   out "grouped by family, oldest-release-first within each group; GitHub renders this"
   out "as a static table (no JS allowed in READMEs), so there's no interactive re-sort."

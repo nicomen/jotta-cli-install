@@ -8,8 +8,8 @@ Nothing here needs credentials — no Jottacloud account, no secrets.
 
 **The point of this repo**: catch it here, first, before a user hits it and
 files a bug — a broken repo, a bad mirror, a package that won't install, a
-daemon that won't start. That's what the grid's two columns are: **install**
-(did `jotta-cli` actually install) and **execution** (does it actually run).
+daemon that won't start. Each cell in the grid is one leg: did the documented
+install work, end to end, and does `jotta-cli` actually run afterward.
 
 ## Status
 
