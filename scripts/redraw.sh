@@ -38,10 +38,15 @@ rm -rf "$RESULTS"
 mkdir -p "$RESULTS"
 
 if [ -z "$RUN_ID" ]; then
-  info "Finding the most recent completed run of install-matrix.yml"
-  RUN_ID="$(gh run list -R "$REPO" --workflow install-matrix.yml \
-    --json databaseId,status --jq '[.[] | select(.status == "completed")][0].databaseId')"
-  [ -n "$RUN_ID" ] || die "no completed run found"
+  info "Finding the most recent completed, non-cancelled run of install-matrix.yml"
+  # status == "completed" alone isn't enough: a run this repo's
+  # concurrency.cancel-in-progress cancelled mid-flight (superseded by a
+  # later push) is also "completed" -- it just only has whatever artifacts
+  # happened to finish before the cancellation. success/failure only.
+  RUN_ID="$(gh run list -R "$REPO" --workflow install-matrix.yml --limit 20 \
+    --json databaseId,status,conclusion \
+    --jq '[.[] | select(.status == "completed" and (.conclusion == "success" or .conclusion == "failure"))][0].databaseId')"
+  [ -n "$RUN_ID" ] || die "no completed (non-cancelled) run found in the last 20"
 fi
 info "Using run $RUN_ID (${GITHUB_SERVER_URL:-https://github.com}/$REPO/actions/runs/$RUN_ID)"
 
