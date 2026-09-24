@@ -181,7 +181,7 @@ render_grid() {
       eol_cell="$eol"
     fi
 
-    row="| $(distro_label "$distro") | ${released} | ${eol_cell} |"
+    row="| $(distro_label "$distro") | <span style=\"white-space:nowrap\">${released}</span> | <span style=\"white-space:nowrap\">${eol_cell}</span> |"
     for a in "${arches[@]}"; do
       row+="$(grid_arch_cells "$dir" "$matrix" "$distro" "$a")"
     done
