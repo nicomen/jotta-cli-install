@@ -91,6 +91,11 @@ distro_label() { # distro_label <distro name>
   printf '%s%s' "$icon" "$1"
 }
 
+# Swaps ASCII hyphen for U+2011 (non-breaking hyphen) so a date can't line-
+# break mid-string in a squeezed column. Plain text, not HTML -- survives
+# GitHub's markdown sanitizer, unlike a style attribute (which it strips).
+nowrap_date() { printf '%s' "${1//-/‑}"; }
+
 UNSTABLE_DISTRO_SUFFIX=" — jotta unstable channel"
 
 # Renders one arch's two columns (stable, unstable) for one distro row.
@@ -181,7 +186,13 @@ render_grid() {
       eol_cell="$eol"
     fi
 
-    row="| $(distro_label "$distro") | <span style=\"white-space:nowrap\">${released}</span> | <span style=\"white-space:nowrap\">${eol_cell}</span> |"
+    # GitHub's markdown sanitizer strips the style attribute entirely (a
+    # <span style="white-space:nowrap"> here was confirmed to render as a
+    # bare <span>, doing nothing), so an ordinary "-" is still a line-break
+    # opportunity and a narrow column wraps "2019-05-07" mid-date. Swap in
+    # the Unicode non-breaking hyphen (U+2011) instead -- plain text, so
+    # there's nothing for a sanitizer to remove.
+    row="| $(distro_label "$distro") | $(nowrap_date "$released") | $(nowrap_date "$eol_cell") |"
     for a in "${arches[@]}"; do
       row+="$(grid_arch_cells "$dir" "$matrix" "$distro" "$a")"
     done
