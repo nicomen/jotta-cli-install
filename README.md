@@ -249,7 +249,26 @@ scripts/run-target.sh                  host-side: run one leg in a container
 scripts/test-install.sh                in-container: install and verify
 scripts/report.sh                      results.tsv -> Markdown (grid / failures / detail)
 scripts/update-readme.sh               splice the grid into README.md
+scripts/redraw.sh                      re-render the grid from the last CI run, no containers
 ```
+
+### Previewing a grid change
+
+Editing `scripts/report.sh`'s formatting (columns, grouping, the legend) and
+want to see it rendered without waiting ~15-20 minutes for all 106 legs to
+run again? `scripts/redraw.sh` pulls the small `results.tsv` artifacts from
+the most recent completed run and renders *today's* `report.sh` against
+*that* data — no containers, no images, just re-rendering:
+
+```sh
+scripts/redraw.sh              # print the grid to stdout
+scripts/redraw.sh --write      # splice it into README.md, like CI does
+scripts/redraw.sh --run 12345  # use a specific run instead of the latest
+```
+
+Needs `gh`, authenticated against this repo. The data is only as fresh as
+whatever that run found — it won't reflect changes to the *tests themselves*,
+only to how results are displayed.
 
 Every knob lives in one of two places: repository facts (hosts, key paths,
 pinned fingerprint, suite, package name) at the top of `scripts/common.sh`, and
