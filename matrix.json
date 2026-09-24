@@ -319,6 +319,20 @@
       "group": "Debian / Ubuntu"
     },
     {
+      "id": "ubuntu-22.04-armhf",
+      "name": "Ubuntu 22.04 LTS / armhf",
+      "distro": "Ubuntu 22.04 LTS",
+      "image": "ubuntu:22.04",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2022-04-21",
+      "eol": "2027-06-01",
+      "group": "Debian / Ubuntu"
+    },
+    {
       "id": "ubuntu-22.04-amd64-unstable",
       "name": "Ubuntu 22.04 LTS / amd64 [jotta unstable]",
       "distro": "Ubuntu 22.04 LTS \u2014 jotta unstable channel",
@@ -347,6 +361,21 @@
       "eol": "2027-06-01",
       "deb_suite": "unstable",
       "group": "Debian / Ubuntu"
+    },
+    {
+      "id": "ubuntu-22.04-armhf-unstable",
+      "name": "Ubuntu 22.04 LTS / armhf [jotta unstable]",
+      "distro": "Ubuntu 22.04 LTS \u2014 jotta unstable channel",
+      "image": "ubuntu:22.04",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2022-04-21",
+      "eol": "2027-06-01",
+      "group": "Debian / Ubuntu",
+      "deb_suite": "unstable"
     },
     {
       "id": "registry.access.redhat.com-ubi9-ubi-latest-amd64",
@@ -725,6 +754,20 @@
       "group": "Debian / Ubuntu"
     },
     {
+      "id": "ubuntu-24.04-armhf",
+      "name": "Ubuntu 24.04 LTS / armhf",
+      "distro": "Ubuntu 24.04 LTS",
+      "image": "ubuntu:24.04",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2024-04-25",
+      "eol": "2029-05-31",
+      "group": "Debian / Ubuntu"
+    },
+    {
       "id": "ubuntu-24.04-amd64-unstable",
       "name": "Ubuntu 24.04 LTS / amd64 [jotta unstable]",
       "distro": "Ubuntu 24.04 LTS \u2014 jotta unstable channel",
@@ -753,6 +796,21 @@
       "eol": "2029-05-31",
       "deb_suite": "unstable",
       "group": "Debian / Ubuntu"
+    },
+    {
+      "id": "ubuntu-24.04-armhf-unstable",
+      "name": "Ubuntu 24.04 LTS / armhf [jotta unstable]",
+      "distro": "Ubuntu 24.04 LTS \u2014 jotta unstable channel",
+      "image": "ubuntu:24.04",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2024-04-25",
+      "eol": "2029-05-31",
+      "group": "Debian / Ubuntu",
+      "deb_suite": "unstable"
     },
     {
       "id": "opensuse-leap-15.6-amd64",
@@ -1247,6 +1305,20 @@
       "group": "Debian / Ubuntu"
     },
     {
+      "id": "ubuntu-26.04-armhf",
+      "name": "Ubuntu 26.04 LTS / armhf",
+      "distro": "Ubuntu 26.04 LTS",
+      "image": "ubuntu:26.04",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2026-04-23",
+      "eol": "2031-05-29",
+      "group": "Debian / Ubuntu"
+    },
+    {
       "id": "ubuntu-26.04-amd64-unstable",
       "name": "Ubuntu 26.04 LTS / amd64 [jotta unstable]",
       "distro": "Ubuntu 26.04 LTS \u2014 jotta unstable channel",
@@ -1275,6 +1347,21 @@
       "eol": "2031-05-29",
       "deb_suite": "unstable",
       "group": "Debian / Ubuntu"
+    },
+    {
+      "id": "ubuntu-26.04-armhf-unstable",
+      "name": "Ubuntu 26.04 LTS / armhf [jotta unstable]",
+      "distro": "Ubuntu 26.04 LTS \u2014 jotta unstable channel",
+      "image": "ubuntu:26.04",
+      "family": "debian",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2026-04-23",
+      "eol": "2031-05-29",
+      "group": "Debian / Ubuntu",
+      "deb_suite": "unstable"
     },
     {
       "id": "fedora-latest-amd64",

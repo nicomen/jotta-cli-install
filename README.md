@@ -115,6 +115,16 @@ Established while writing this (2026-09-18):
 | RPM architectures | `x86_64 aarch64 armv7hl i386` |
 | Latest published version | `0.17.176206` |
 
+`armv7hl`/`i386` RPMs are published, but **no container image exists to test
+them against**: Fedora 40+, Rocky 9+, AlmaLinux 8+, and CentOS Stream all
+dropped 32-bit x86 and armv7 as supported architectures at the OS level (only
+`amd64`/`arm64`/`ppc64le`/`s390x` images exist for any of them) — those RPMs
+are presumably there for EL6/EL7-era systems, none of which are in this
+matrix. Ubuntu dropped `i386` images the same way (22.04+ ships no `i386`
+variant at all), so Ubuntu gets `armhf` coverage but not `i386`. `i386` and
+`armhf` end up Debian-only not by choice, but because Debian is the only
+family whose current releases still have images for both.
+
 `unstable` is **not** an unstable *OS* — it's jotta's own pre-release build of
 `jotta-cli` itself, decoupled from which distro runs it. Confirmed: its
 `Packages`/`repomd.xml` list a different, unrelated version history from the

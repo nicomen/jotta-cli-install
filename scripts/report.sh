@@ -201,7 +201,7 @@ render_grid() {
     if [ "$cur_group" != "$prev_group" ]; then
       local blank=""
       for a in "${arches[@]}"; do blank+="  |  |"; done
-      out "| **— ${cur_group} —** |  |  |${blank}"
+      out "| **${cur_group}** |  |  |${blank}"
       prev_group="$cur_group"
     fi
 
