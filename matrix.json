@@ -1508,6 +1508,34 @@
       "group": "SUSE"
     },
     {
+      "id": "opensuse-tumbleweed-armhf",
+      "name": "openSUSE Tumbleweed / armhf",
+      "distro": "openSUSE Tumbleweed",
+      "image": "opensuse/tumbleweed",
+      "family": "rpm",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "rolling",
+      "eol": "rolling",
+      "group": "SUSE"
+    },
+    {
+      "id": "opensuse-tumbleweed-i386",
+      "name": "openSUSE Tumbleweed / i386",
+      "distro": "openSUSE Tumbleweed",
+      "image": "opensuse/tumbleweed",
+      "family": "rpm",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "rolling",
+      "eol": "rolling",
+      "group": "SUSE"
+    },
+    {
       "id": "opensuse-tumbleweed-amd64-unstable",
       "name": "openSUSE Tumbleweed / amd64 [jotta unstable]",
       "distro": "openSUSE Tumbleweed \u2014 jotta unstable channel",
@@ -1536,6 +1564,36 @@
       "eol": "rolling",
       "rpm_path": "/redhat-unstable",
       "group": "SUSE"
+    },
+    {
+      "id": "opensuse-tumbleweed-armhf-unstable",
+      "name": "openSUSE Tumbleweed / armhf [jotta unstable]",
+      "distro": "openSUSE Tumbleweed \u2014 jotta unstable channel",
+      "image": "opensuse/tumbleweed",
+      "family": "rpm",
+      "platform": "linux/arm/v7",
+      "arch": "armhf",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "rolling",
+      "eol": "rolling",
+      "group": "SUSE",
+      "rpm_path": "/redhat-unstable"
+    },
+    {
+      "id": "opensuse-tumbleweed-i386-unstable",
+      "name": "openSUSE Tumbleweed / i386 [jotta unstable]",
+      "distro": "openSUSE Tumbleweed \u2014 jotta unstable channel",
+      "image": "opensuse/tumbleweed",
+      "family": "rpm",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "rolling",
+      "eol": "rolling",
+      "group": "SUSE",
+      "rpm_path": "/redhat-unstable"
     }
   ]
 }
