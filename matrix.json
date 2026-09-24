@@ -12,7 +12,7 @@
       "qemu": false,
       "released": "2019-05-07",
       "eol": "2029-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi8-ubi-latest-arm64",
@@ -26,7 +26,7 @@
       "qemu": false,
       "released": "2019-05-07",
       "eol": "2029-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi8-ubi-latest-amd64-unstable",
@@ -41,7 +41,7 @@
       "released": "2019-05-07",
       "eol": "2029-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi8-ubi-latest-arm64-unstable",
@@ -56,7 +56,7 @@
       "released": "2019-05-07",
       "eol": "2029-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-8-amd64",
@@ -70,7 +70,7 @@
       "qemu": false,
       "released": "2021-03-30",
       "eol": "2029-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-8-arm64",
@@ -84,7 +84,7 @@
       "qemu": false,
       "released": "2021-03-30",
       "eol": "2029-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-8-amd64-unstable",
@@ -99,7 +99,7 @@
       "released": "2021-03-30",
       "eol": "2029-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-8-arm64-unstable",
@@ -114,7 +114,7 @@
       "released": "2021-03-30",
       "eol": "2029-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "debian-11-amd64",
@@ -244,7 +244,7 @@
       "qemu": false,
       "released": "2021-09-15",
       "eol": "2027-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "quay.io-centos-centos-stream9-arm64",
@@ -258,7 +258,7 @@
       "qemu": false,
       "released": "2021-09-15",
       "eol": "2027-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "quay.io-centos-centos-stream9-amd64-unstable",
@@ -273,7 +273,7 @@
       "released": "2021-09-15",
       "eol": "2027-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "quay.io-centos-centos-stream9-arm64-unstable",
@@ -288,7 +288,7 @@
       "released": "2021-09-15",
       "eol": "2027-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "ubuntu-22.04-amd64",
@@ -389,7 +389,7 @@
       "qemu": false,
       "released": "2022-05-18",
       "eol": "2032-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi9-ubi-latest-arm64",
@@ -403,7 +403,7 @@
       "qemu": false,
       "released": "2022-05-18",
       "eol": "2032-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi9-ubi-latest-amd64-unstable",
@@ -418,7 +418,7 @@
       "released": "2022-05-18",
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi9-ubi-latest-arm64-unstable",
@@ -433,7 +433,7 @@
       "released": "2022-05-18",
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-9-amd64",
@@ -447,7 +447,7 @@
       "qemu": false,
       "released": "2022-05-26",
       "eol": "2032-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-9-arm64",
@@ -461,7 +461,7 @@
       "qemu": false,
       "released": "2022-05-26",
       "eol": "2032-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-9-amd64-unstable",
@@ -476,7 +476,7 @@
       "released": "2022-05-26",
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-9-arm64-unstable",
@@ -491,7 +491,7 @@
       "released": "2022-05-26",
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-9-amd64",
@@ -505,7 +505,7 @@
       "qemu": false,
       "released": "2022-07-14",
       "eol": "2032-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-9-arm64",
@@ -519,7 +519,7 @@
       "qemu": false,
       "released": "2022-07-14",
       "eol": "2032-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-9-amd64-unstable",
@@ -534,7 +534,7 @@
       "released": "2022-07-14",
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-9-arm64-unstable",
@@ -549,7 +549,7 @@
       "released": "2022-07-14",
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "debian-12-amd64",
@@ -882,7 +882,7 @@
       "qemu": false,
       "released": "2024-12-12",
       "eol": "2030-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "quay.io-centos-centos-stream10-arm64",
@@ -896,7 +896,7 @@
       "qemu": false,
       "released": "2024-12-12",
       "eol": "2030-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "quay.io-centos-centos-stream10-amd64-unstable",
@@ -911,7 +911,7 @@
       "released": "2024-12-12",
       "eol": "2030-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "quay.io-centos-centos-stream10-arm64-unstable",
@@ -926,7 +926,7 @@
       "released": "2024-12-12",
       "eol": "2030-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi10-ubi-latest-amd64",
@@ -940,7 +940,7 @@
       "qemu": false,
       "released": "2025-05-20",
       "eol": "2035-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi10-ubi-latest-arm64",
@@ -954,7 +954,7 @@
       "qemu": false,
       "released": "2025-05-20",
       "eol": "2035-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi10-ubi-latest-amd64-unstable",
@@ -969,7 +969,7 @@
       "released": "2025-05-20",
       "eol": "2035-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.access.redhat.com-ubi10-ubi-latest-arm64-unstable",
@@ -984,7 +984,7 @@
       "released": "2025-05-20",
       "eol": "2035-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-10-amd64",
@@ -998,7 +998,7 @@
       "qemu": false,
       "released": "2025-05-27",
       "eol": "2035-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-10-arm64",
@@ -1012,7 +1012,7 @@
       "qemu": false,
       "released": "2025-05-27",
       "eol": "2035-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-10-amd64-unstable",
@@ -1027,7 +1027,7 @@
       "released": "2025-05-27",
       "eol": "2035-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "almalinux-10-arm64-unstable",
@@ -1042,7 +1042,7 @@
       "released": "2025-05-27",
       "eol": "2035-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-10-amd64",
@@ -1056,7 +1056,7 @@
       "qemu": false,
       "released": "2025-06-11",
       "eol": "2035-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-10-arm64",
@@ -1070,7 +1070,7 @@
       "qemu": false,
       "released": "2025-06-11",
       "eol": "2035-05-31",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-10-amd64-unstable",
@@ -1085,7 +1085,7 @@
       "released": "2025-06-11",
       "eol": "2035-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "rockylinux-rockylinux-10-arm64-unstable",
@@ -1100,7 +1100,7 @@
       "released": "2025-06-11",
       "eol": "2035-05-31",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family (EL)"
+      "group": "RHEL family"
     },
     {
       "id": "registry.suse.com-bci-bci-base-latest-amd64",
