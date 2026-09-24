@@ -210,7 +210,12 @@ render_grid() {
     if [ "$eol" = rolling ]; then
       eol_cell="rolling"
     elif [[ "$eol" < "$today" ]]; then
-      eol_cell="⚠️ ${eol}"   # already past EOL as of today
+      # Struck through rather than "⚠️ ${eol}": that needed a space between
+      # the emoji and the date, another line-break opportunity to protect
+      # against wrapping. ~~text~~ is native GFM, not an HTML attribute, so
+      # nothing for GitHub's sanitizer to strip, and there's no extra
+      # character to wrap on in the first place.
+      eol_cell="~~${eol}~~"   # already past EOL as of today
     else
       eol_cell="$eol"
     fi
@@ -232,7 +237,7 @@ render_grid() {
   out "it checks\" for what unstable means), not a real spanning header since"
   out "GitHub's tables don't support one. ✅ passed · ❌ failed · ⏳ no result yet"
   out "(run in progress) · · not published for that architecture/channel."
-  out "⚠️ next to an EOL date means it's already past that date as of today. Rows are"
+  out "A ~~struck-through~~ EOL date means it's already past that date as of today. Rows are"
   out "grouped by family, oldest-release-first within each group; GitHub renders this"
   out "as a static table (no JS allowed in READMEs), so there's no interactive re-sort."
 

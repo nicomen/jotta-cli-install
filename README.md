@@ -307,8 +307,8 @@ Add an object to `matrix.json`:
 `group` is the grid's bold section divider ("Debian / Ubuntu", "RHEL family",
 "SUSE" today) — sections are ordered by their earliest `released` date, and
 rows within a section by their own `released`, oldest first (`"rolling"`
-always sorts last within its section). `eol` gets a ⚠️ in the grid once it's
-in the past.
+always sorts last within its section). `eol` gets struck through in the grid
+once it's in the past.
 
 Add `"live_eol": true` for a "moving tag" image like `fedora:latest`, whose
 `released`/`eol` here are only a snapshot from whenever someone last checked
