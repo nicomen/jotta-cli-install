@@ -1375,7 +1375,8 @@
       "qemu": false,
       "released": "2026-04-28",
       "eol": "2027-06-02",
-      "group": "RHEL family"
+      "group": "RHEL family",
+      "live_eol": true
     },
     {
       "id": "fedora-latest-arm64",
@@ -1389,7 +1390,8 @@
       "qemu": false,
       "released": "2026-04-28",
       "eol": "2027-06-02",
-      "group": "RHEL family"
+      "group": "RHEL family",
+      "live_eol": true
     },
     {
       "id": "fedora-latest-amd64-unstable",
@@ -1404,7 +1406,8 @@
       "released": "2026-04-28",
       "eol": "2027-06-02",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family"
+      "group": "RHEL family",
+      "live_eol": true
     },
     {
       "id": "fedora-latest-arm64-unstable",
@@ -1419,7 +1422,8 @@
       "released": "2026-04-28",
       "eol": "2027-06-02",
       "rpm_path": "/redhat-unstable",
-      "group": "RHEL family"
+      "group": "RHEL family",
+      "live_eol": true
     },
     {
       "id": "debian-sid-amd64",

@@ -123,6 +123,8 @@ bootstrap() {
   note "arch" "$(pkg_arch) (kernel: $(uname -m))"
   note "pkg_mgr" "$PKG_MGR"
 
+  note_os_lifecycle
+
   # One metadata refresh, then install only the tools that are missing.
   case "$PKG_MGR" in
     apt)

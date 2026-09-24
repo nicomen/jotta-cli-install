@@ -304,11 +304,21 @@ Add an object to `matrix.json`:
 }
 ```
 
-`group` is the grid's bold section divider ("Debian / Ubuntu", "RHEL family
-(EL)", "Fedora", "SUSE" today) — sections are ordered by their earliest
-`released` date, and rows within a section by their own `released`, oldest
-first (`"rolling"` always sorts last within its section). `eol` gets a ⚠️ in
-the grid once it's in the past.
+`group` is the grid's bold section divider ("Debian / Ubuntu", "RHEL family",
+"SUSE" today) — sections are ordered by their earliest `released` date, and
+rows within a section by their own `released`, oldest first (`"rolling"`
+always sorts last within its section). `eol` gets a ⚠️ in the grid once it's
+in the past.
+
+Add `"live_eol": true` for a "moving tag" image like `fedora:latest`, whose
+`released`/`eol` here are only a snapshot from whenever someone last checked
+— Docker Hub silently repoints `latest` to the next release, and the
+hardcoded date goes stale the moment that happens. With the flag set, the
+grid instead uses the `SUPPORT_END` that leg's own `/etc/os-release` reported
+at test time (`note_os_lifecycle` in `common.sh` records it automatically;
+most distros don't carry `SUPPORT_END`, so this is a no-op for anything that
+doesn't need it), falling back to the static `eol` here when no leg has
+reported one yet.
 
 Then add its unstable-channel twin — same fields, `id` suffixed `-unstable`,
 `distro` suffixed ` — jotta unstable channel`, plus `"deb_suite": "unstable"`

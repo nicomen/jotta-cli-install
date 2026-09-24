@@ -175,6 +175,23 @@ render_grid() {
     released="$(jq -r '.released' <<<"$entry")"
     eol="$(jq -r '.eol' <<<"$entry")"
 
+    # For a "moving tag" leg (matrix.json: "live_eol": true), prefer the EOL
+    # its own run actually found in /etc/os-release (see note_os_lifecycle in
+    # common.sh) over the static string here, which only reflects whichever
+    # real release "latest" happened to mean when someone last looked. Falls
+    # straight back to the static value if no leg has reported one yet.
+    if [ "$(jq -r '.live_eol // false' <<<"$entry")" = true ]; then
+      local live_eol
+      live_eol="$(jq -r --arg d "$distro" \
+        '[.targets[] | select(.distro == $d) | .id][]' "$matrix" |
+        while read -r id; do
+          f="$dir/$id/results.tsv"
+          [ -s "$f" ] || continue
+          awk -F'\t' '$1=="os_support_end" && $3!="" {print $3; exit}' "$f"
+        done | head -n1)"
+      [ -n "$live_eol" ] && eol="$live_eol"
+    fi
+
     if [ "$cur_group" != "$prev_group" ]; then
       local blank=""
       for a in "${arches[@]}"; do blank+="  |"; done

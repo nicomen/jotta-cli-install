@@ -40,6 +40,7 @@ bootstrap() {
   info "Target: Arch Linux [$(uname -m)] via makepkg"
   note "os" "$(os_pretty_name)"
   note "arch" "$(uname -m)"
+  note_os_lifecycle
 
   pacman -Sy --noconfirm --quiet >/dev/null
   # --needed skips whatever is already there, same intent as ensure_commands

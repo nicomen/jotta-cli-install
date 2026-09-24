@@ -174,6 +174,25 @@ os_pretty_name() {
   ( . /etc/os-release 2>/dev/null && printf '%s\n' "${PRETTY_NAME:-unknown}" ) || printf 'unknown\n'
 }
 
+# Records os_version_id / os_support_end as notes (empty when /etc/os-release
+# doesn't carry them, which is most distros) so a "moving tag" leg like
+# fedora:latest -- which points at a different real release over time -- can
+# report its own current, authoritative EOL instead of the grid trusting a
+# hardcoded matrix.json string that goes stale the moment Docker Hub retags
+# "latest" to the next release. Fedora's own os-release carries SUPPORT_END
+# directly; most distros don't, and that's fine -- this is a no-op then.
+note_os_lifecycle() {
+  local version_id="" support_end=""
+  if [ -r /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    version_id="$(. /etc/os-release && printf '%s' "${VERSION_ID:-}")"
+    # shellcheck disable=SC1091
+    support_end="$(. /etc/os-release && printf '%s' "${SUPPORT_END:-}")"
+  fi
+  note "os_version_id" "$version_id"
+  note "os_support_end" "$support_end"
+}
+
 # Convert a binary OpenPGP key into an ASCII-armored public key block.
 # rpm/dnf/zypper want armored input; the repo serves the key in binary form.
 armor_key() { # armor_key <binary-key> <out.asc>
