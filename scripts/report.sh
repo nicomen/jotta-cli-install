@@ -99,21 +99,25 @@ nowrap_date() { printf '%s' "${1//-/‑}"; }
 UNSTABLE_DISTRO_SUFFIX=" — jotta unstable channel"
 
 # Renders one arch's two columns (stable, unstable) for one distro row.
+# GFM tables have no colspan/rowspan, so "amd64" can't be a real header
+# spanning a stable/unstable pair of sub-columns -- one column per arch
+# instead, each cell holding both results as stable/unstable.
 grid_arch_cells() { # grid_arch_cells <results-dir> <matrix> <distro> <arch>
-  local dir="$1" matrix="$2" distro="$3" arch="$4" channel_distro id st out_cells=""
+  local dir="$1" matrix="$2" distro="$3" arch="$4" channel_distro id st
+  local -a icons=()
   for channel_distro in "$distro" "${distro}${UNSTABLE_DISTRO_SUFFIX}"; do
     id="$(jq -r --arg d "$channel_distro" --arg a "$arch" \
       'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
     if [ -z "$id" ]; then
-      out_cells+=" $(status_icon none_col) |"
+      icons+=("$(status_icon none_col)")
       continue
     fi
     st="$(leg_status "$dir" "$id")"
     GRID_ANY=1
     [ "$st" = fail ] && GRID_WORST=fail
-    out_cells+=" $(status_icon "$st") |"
+    icons+=("$(status_icon "$st")")
   done
-  printf '%s' "$out_cells"
+  printf ' %s/%s |' "${icons[0]}" "${icons[1]}"
 }
 
 render_grid() {
@@ -148,8 +152,8 @@ render_grid() {
   local header="| Distro | Released | EOL |" sep="|---|:-:|:-:|"
   local a
   for a in "${arches[@]}"; do
-    header+=" ${a} (stable) | ${a} (unstable) |"
-    sep+=":-:|:-:|"
+    header+=" ${a} (stable/unstable) |"
+    sep+=":-:|"
   done
   out "$header"
   out "$sep"
@@ -173,7 +177,7 @@ render_grid() {
 
     if [ "$cur_group" != "$prev_group" ]; then
       local blank=""
-      for a in "${arches[@]}"; do blank+="  |  |"; done
+      for a in "${arches[@]}"; do blank+="  |"; done
       out "| **${cur_group}** |  |  |${blank}"
       prev_group="$cur_group"
     fi
@@ -199,10 +203,10 @@ render_grid() {
     out "$row"
   done
   out ""
-  out "Each cell is one leg -- jotta's stable and unstable package channels"
-  out "side by side (see \"What it checks\" for what unstable means)."
-  out "✅ passed · ❌ failed · ⏳ no result yet (run in progress) · · not published"
-  out "for that architecture/channel."
+  out "Each cell is stable/unstable -- jotta's two package channels (see \"What"
+  out "it checks\" for what unstable means), not a real spanning header since"
+  out "GitHub's tables don't support one. ✅ passed · ❌ failed · ⏳ no result yet"
+  out "(run in progress) · · not published for that architecture/channel."
   out "⚠️ next to an EOL date means it's already past that date as of today. Rows are"
   out "grouped by family, oldest-release-first within each group; GitHub renders this"
   out "as a static table (no JS allowed in READMEs), so there's no interactive re-sort."
