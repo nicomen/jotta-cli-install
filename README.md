@@ -136,8 +136,17 @@ at that repo instead — doubles the matrix, but "does the new packaging work
 on distro X" and "is distro X's own repo access still fine" are genuinely
 different questions, and testing unstable on only one OS per family would
 have quietly assumed they weren't. This is a different question from "does a
-rolling *OS* work" (`Debian sid`, `openSUSE Tumbleweed`), which installs
-jotta's normal stable channel on a rolling distro instead.
+rolling *OS* work" (`Debian sid`, `openSUSE Tumbleweed`, `Ubuntu 26.10
+(development)`), which installs jotta's normal stable channel on a rolling
+distro instead.
+
+`Ubuntu 26.10 (development)` is `ubuntu:devel` — Canonical's own nightly
+build of whatever the next release is (codename `stonking` at the time of
+writing; `/etc/os-release` in the image says `RELEASE_TYPE=development`),
+not the eventual stable 26.10 that ships in October. It moves out from under
+this the same way Debian sid or Tumbleweed's packages do; a red cell here
+means "something in Ubuntu's own in-development packages currently breaks
+this," not necessarily "the released 26.10 will be broken."
 
 ### Two keys are served, and only one of them is live
 
