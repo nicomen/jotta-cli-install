@@ -106,26 +106,19 @@ nowrap_date() { printf '%s' "${1//-/‑}"; }
 
 UNSTABLE_DISTRO_SUFFIX=" — jotta unstable channel"
 
-# Renders one arch's two columns (stable, unstable) for one distro row.
-# GFM tables have no colspan/rowspan, so "amd64" can't be a real header
-# spanning a stable/unstable pair of sub-columns -- one column per arch
-# instead, each cell holding both results as stable/unstable.
-grid_arch_cells() { # grid_arch_cells <results-dir> <matrix> <distro> <arch>
-  local dir="$1" matrix="$2" distro="$3" arch="$4" channel_distro id st
-  local -a icons=()
-  for channel_distro in "$distro" "${distro}${UNSTABLE_DISTRO_SUFFIX}"; do
-    id="$(jq -r --arg d "$channel_distro" --arg a "$arch" \
-      'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
-    if [ -z "$id" ]; then
-      icons+=("$(status_icon none_col)")
-      continue
-    fi
-    st="$(leg_status "$dir" "$id")"
-    GRID_ANY=1
-    [ "$st" = fail ] && GRID_WORST=fail
-    icons+=("$(status_icon "$st")")
-  done
-  printf ' %s/%s |' "${icons[0]}" "${icons[1]}"
+# Status icon for exactly one (distro, arch, channel) cell.
+grid_cell() { # grid_cell <results-dir> <matrix> <channel-distro> <arch>
+  local dir="$1" matrix="$2" channel_distro="$3" arch="$4" id st
+  id="$(jq -r --arg d "$channel_distro" --arg a "$arch" \
+    'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
+  if [ -z "$id" ]; then
+    printf ' %s |' "$(status_icon none_col)"
+    return
+  fi
+  st="$(leg_status "$dir" "$id")"
+  GRID_ANY=1
+  [ "$st" = fail ] && GRID_WORST=fail
+  printf ' %s |' "$(status_icon "$st")"
 }
 
 render_grid() {
@@ -140,9 +133,10 @@ render_grid() {
   local ordered='reduce .[] as $v ([]; if index([$v]) then . else . + [$v] end)'
   local arches
   mapfile -t arches < <(jq -r "[.targets[].arch] | ${ordered} | .[]" "$matrix")
+  local n_arch=${#arches[@]}
 
   # Rows: one per base OS (the unstable-channel clones don't get their own
-  # row -- their results feed the "unstable" column instead), grouped by
+  # row -- their results feed the "unstable" block instead), grouped by
   # family (each group ordered by its own earliest release), each group
   # internally still oldest-release-first.
   local rows
@@ -157,14 +151,37 @@ render_grid() {
     )
   ' "$matrix")"
 
+  # GFM has no colspan/rowspan, so "stable"/"unstable" can't be a real
+  # header spanning the arch columns beneath it. Approximated instead with
+  # the same trick the family dividers use: a plain bold row directly under
+  # the true header, the channel name in the first cell of its block and
+  # blank cells for the rest -- not a real span, but reads as one at a
+  # glance, and it's the closest GFM tables can get.
   local header="| Distro | Released | EOL |" sep="|---|:-:|:-:|"
-  local a
-  for a in "${arches[@]}"; do
-    header+=" ${a} (stable/unstable) |"
-    sep+=":-:|"
+  local channel a
+  for channel in stable unstable; do
+    for a in "${arches[@]}"; do
+      header+=" ${a} |"
+      sep+=":-:|"
+    done
   done
   out "$header"
   out "$sep"
+
+  local channel_row="|  |  |  |"
+  local first
+  for channel in stable unstable; do
+    first=1
+    for a in "${arches[@]}"; do
+      if [ "$first" -eq 1 ]; then
+        channel_row+=" **${channel}** |"
+        first=0
+      else
+        channel_row+="  |"
+      fi
+    done
+  done
+  out "$channel_row"
 
   local today
   today="$(date -u +%Y-%m-%d)"
@@ -201,8 +218,8 @@ render_grid() {
     fi
 
     if [ "$cur_group" != "$prev_group" ]; then
-      local blank=""
-      for a in "${arches[@]}"; do blank+="  |"; done
+      local blank="" j
+      for ((j = 0; j < n_arch * 2; j++)); do blank+="  |"; done
       out "| **${cur_group}** |  |  |${blank}"
       prev_group="$cur_group"
     fi
@@ -227,19 +244,25 @@ render_grid() {
     # the Unicode non-breaking hyphen (U+2011) instead -- plain text, so
     # there's nothing for a sanitizer to remove.
     row="| $(distro_label "$distro") | $(nowrap_date "$released") | $(nowrap_date "$eol_cell") |"
-    for a in "${arches[@]}"; do
-      row+="$(grid_arch_cells "$dir" "$matrix" "$distro" "$a")"
+    for channel in stable unstable; do
+      local channel_distro="$distro"
+      [ "$channel" = unstable ] && channel_distro="${distro}${UNSTABLE_DISTRO_SUFFIX}"
+      for a in "${arches[@]}"; do
+        row+="$(grid_cell "$dir" "$matrix" "$channel_distro" "$a")"
+      done
     done
     out "$row"
   done
   out ""
-  out "Each cell is stable/unstable -- jotta's two package channels (see \"What"
-  out "it checks\" for what unstable means), not a real spanning header since"
-  out "GitHub's tables don't support one. ✅ passed · ❌ failed · ⏳ no result yet"
-  out "(run in progress) · · not published for that architecture/channel."
-  out "A ~~struck-through~~ EOL date means it's already past that date as of today. Rows are"
-  out "grouped by family, oldest-release-first within each group; GitHub renders this"
-  out "as a static table (no JS allowed in READMEs), so there's no interactive re-sort."
+  out "stable/unstable are jotta's two package channels (see \"What it checks\""
+  out "for what unstable means). The bold row under the header names each"
+  out "block -- GitHub's tables can't really span a header over several"
+  out "columns, this is the closest approximation. ✅ passed · ❌ failed · ⏳ no"
+  out "result yet (run in progress) · · not published for that architecture."
+  out "A ~~struck-through~~ EOL date means it's already past that date as of"
+  out "today. Rows are grouped by family, oldest-release-first within each"
+  out "group; GitHub renders this as a static table (no JS allowed in"
+  out "READMEs), so there's no interactive re-sort."
 
   [ "$GRID_ANY" -eq 1 ] || return 0
   [ "$GRID_WORST" = pass ]
