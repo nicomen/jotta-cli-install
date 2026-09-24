@@ -83,12 +83,20 @@ distro_icon_slug() {
 }
 
 distro_label() { # distro_label <distro name>
-  local slug icon=""
+  local slug icon="" name
   slug="$(distro_icon_slug "$1")"
   if [ -n "$slug" ]; then
     icon="<img src=\"https://cdn.simpleicons.org/${slug}\" width=\"16\" height=\"16\" valign=\"middle\" alt=\"\"> "
   fi
-  printf '%s%s' "$icon" "$1"
+  # Same fix as the dates (see nowrap_date): a real space is a line-break
+  # opportunity and this column gets squeezed by everything else in the
+  # table, so "openSUSE Leap 15.6" wraps mid-name. U+00A0 (non-breaking
+  # space) is plain text, not an attribute, so GitHub's sanitizer -- which
+  # strips style but not ordinary Unicode characters -- leaves it alone.
+  # (  only expands inside $'...', not a bare ${var//pattern/repl}.)
+  local nbsp=$' '
+  name="${1// /$nbsp}"
+  printf '%s%s' "$icon" "$name"
 }
 
 # Swaps ASCII hyphen for U+2011 (non-breaking hyphen) so a date can't line-
