@@ -87,6 +87,20 @@
       "group": "RHEL family"
     },
     {
+      "id": "almalinux-8-i386",
+      "name": "AlmaLinux 8 / i386",
+      "distro": "AlmaLinux 8",
+      "image": "quay.io/almalinuxorg/almalinux:8",
+      "family": "rpm",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2021-03-30",
+      "eol": "2029-05-31",
+      "group": "RHEL family"
+    },
+    {
       "id": "almalinux-8-amd64-unstable",
       "name": "AlmaLinux 8 / amd64 [jotta unstable]",
       "distro": "AlmaLinux 8 \u2014 jotta unstable channel",
@@ -115,6 +129,21 @@
       "eol": "2029-05-31",
       "rpm_path": "/redhat-unstable",
       "group": "RHEL family"
+    },
+    {
+      "id": "almalinux-8-i386-unstable",
+      "name": "AlmaLinux 8 / i386 [jotta unstable]",
+      "distro": "AlmaLinux 8 \u2014 jotta unstable channel",
+      "image": "quay.io/almalinuxorg/almalinux:8",
+      "family": "rpm",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2021-03-30",
+      "eol": "2029-05-31",
+      "group": "RHEL family",
+      "rpm_path": "/redhat-unstable"
     },
     {
       "id": "debian-11-amd64",
@@ -464,6 +493,20 @@
       "group": "RHEL family"
     },
     {
+      "id": "almalinux-9-i386",
+      "name": "AlmaLinux 9 / i386",
+      "distro": "AlmaLinux 9",
+      "image": "quay.io/almalinuxorg/almalinux:9",
+      "family": "rpm",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2022-05-26",
+      "eol": "2032-05-31",
+      "group": "RHEL family"
+    },
+    {
       "id": "almalinux-9-amd64-unstable",
       "name": "AlmaLinux 9 / amd64 [jotta unstable]",
       "distro": "AlmaLinux 9 \u2014 jotta unstable channel",
@@ -492,6 +535,21 @@
       "eol": "2032-05-31",
       "rpm_path": "/redhat-unstable",
       "group": "RHEL family"
+    },
+    {
+      "id": "almalinux-9-i386-unstable",
+      "name": "AlmaLinux 9 / i386 [jotta unstable]",
+      "distro": "AlmaLinux 9 \u2014 jotta unstable channel",
+      "image": "quay.io/almalinuxorg/almalinux:9",
+      "family": "rpm",
+      "platform": "linux/386",
+      "arch": "i386",
+      "runner": "ubuntu-24.04",
+      "qemu": true,
+      "released": "2022-05-26",
+      "eol": "2032-05-31",
+      "group": "RHEL family",
+      "rpm_path": "/redhat-unstable"
     },
     {
       "id": "rockylinux-rockylinux-9-amd64",
