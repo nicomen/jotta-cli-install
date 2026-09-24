@@ -116,6 +116,33 @@ distro_label() { # distro_label <distro name>
   printf '%s%s' "$icon" "$1"
 }
 
+UNSTABLE_DISTRO_SUFFIX=" — jotta unstable channel"
+
+# Renders one arch's two columns (stable, unstable) for one distro row.
+grid_arch_cells() { # grid_arch_cells <results-dir> <matrix> <distro> <arch>
+  local dir="$1" matrix="$2" distro="$3" arch="$4" channel_distro id st out_cells=""
+  for channel_distro in "$distro" "${distro}${UNSTABLE_DISTRO_SUFFIX}"; do
+    id="$(jq -r --arg d "$channel_distro" --arg a "$arch" \
+      'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
+    if [ -z "$id" ]; then
+      out_cells+=" $(status_icon none_col) |"
+      continue
+    fi
+    st="$(leg_status "$dir" "$id")"
+    GRID_ANY=1
+    [ "$st" = fail ] && GRID_WORST=fail
+    if [ "$st" = missing ]; then
+      out_cells+=" $(status_icon missing) |"
+    else
+      local i_st r_st
+      i_st="$(leg_phase_status "$dir" "$id" install)"
+      r_st="$(leg_phase_status "$dir" "$id" run)"
+      out_cells+=" $(status_icon "$i_st" install)/$(status_icon "$r_st" execution) |"
+    fi
+  done
+  printf '%s' "$out_cells"
+}
+
 render_grid() {
   local dir="${1:-results}" matrix="${2:-matrix.json}"
 
@@ -125,29 +152,59 @@ render_grid() {
   fi
   [ -f "$matrix" ] || { out "_No grid: ${matrix} not found._"; return 0; }
 
-  # Column and row order follow matrix.json rather than being sorted, so the
-  # grid keeps the order a human put the targets in.
   local ordered='reduce .[] as $v ([]; if index([$v]) then . else . + [$v] end)'
-  local arches distros
-  mapfile -t arches  < <(jq -r "[.targets[].arch]   | ${ordered} | .[]" "$matrix")
-  mapfile -t distros < <(jq -r "[.targets[].distro] | ${ordered} | .[]" "$matrix")
+  local arches
+  mapfile -t arches < <(jq -r "[.targets[].arch] | ${ordered} | .[]" "$matrix")
+
+  # Rows: one per base OS (the unstable-channel clones don't get their own
+  # row -- their results feed the "unstable" column instead), grouped by
+  # family (each group ordered by its own earliest release), each group
+  # internally still oldest-release-first.
+  local rows
+  rows="$(jq -c --arg sfx "$UNSTABLE_DISTRO_SUFFIX" '
+    [.targets[] | select(.distro | endswith($sfx) | not)] | unique_by(.distro) as $bases |
+    ($bases | group_by(.group) |
+     map({group: .[0].group, min: (map(.released) | map(if . == "rolling" then "9999-99-99" else . end) | min)}) |
+     sort_by(.min) | map(.group)) as $group_order |
+    $bases | sort_by(
+      (.group as $g | $group_order | index($g)),
+      (if .released == "rolling" then "9999-99-99" else .released end)
+    )
+  ' "$matrix")"
 
   local header="| Distro | Released | EOL |" sep="|---|:-:|:-:|"
-  local a d id st row worst=pass any=0
+  local a
   for a in "${arches[@]}"; do
-    header+=" ${a} |"
-    sep+=":-:|"
+    header+=" ${a} (stable) | ${a} (unstable) |"
+    sep+=":-:|:-:|"
   done
   out "$header"
   out "$sep"
 
   local today
   today="$(date -u +%Y-%m-%d)"
+  GRID_ANY=0
+  GRID_WORST=pass
 
-  for d in "${distros[@]}"; do
-    local released eol eol_cell
-    released="$(jq -r --arg d "$d" 'first(.targets[] | select(.distro == $d) | .released) // "?"' "$matrix")"
-    eol="$(jq -r --arg d "$d" 'first(.targets[] | select(.distro == $d) | .eol) // "?"' "$matrix")"
+  local prev_group="" cur_group distro released eol eol_cell row
+  local n
+  n="$(jq 'length' <<<"$rows")"
+  local i
+  for ((i = 0; i < n; i++)); do
+    local entry
+    entry="$(jq -c ".[$i]" <<<"$rows")"
+    distro="$(jq -r '.distro' <<<"$entry")"
+    cur_group="$(jq -r '.group // "Other"' <<<"$entry")"
+    released="$(jq -r '.released' <<<"$entry")"
+    eol="$(jq -r '.eol' <<<"$entry")"
+
+    if [ "$cur_group" != "$prev_group" ]; then
+      local blank=""
+      for a in "${arches[@]}"; do blank+="  |  |"; done
+      out "| **— ${cur_group} —** |  |  |${blank}"
+      prev_group="$cur_group"
+    fi
+
     if [ "$eol" = rolling ]; then
       eol_cell="rolling"
     elif [[ "$eol" < "$today" ]]; then
@@ -155,37 +212,24 @@ render_grid() {
     else
       eol_cell="$eol"
     fi
-    row="| $(distro_label "$d") | ${released} | ${eol_cell} |"
+
+    row="| $(distro_label "$distro") | ${released} | ${eol_cell} |"
     for a in "${arches[@]}"; do
-      id="$(jq -r --arg d "$d" --arg a "$a" \
-        'first(.targets[] | select(.distro == $d and .arch == $a) | .id) // ""' "$matrix")"
-      if [ -z "$id" ]; then
-        row+=" $(status_icon none_col) |"
-      else
-        st="$(leg_status "$dir" "$id")"
-        any=1
-        if [ "$st" = fail ]; then worst=fail; fi
-        if [ "$st" = missing ]; then
-          row+=" $(status_icon missing) |"
-        else
-          local i_st r_st
-          i_st="$(leg_phase_status "$dir" "$id" install)"
-          r_st="$(leg_phase_status "$dir" "$id" run)"
-          row+=" $(status_icon "$i_st" install)/$(status_icon "$r_st" execution) |"
-        fi
-      fi
+      row+="$(grid_arch_cells "$dir" "$matrix" "$distro" "$a")"
     done
     out "$row"
   done
   out ""
-  out "Each cell is install/execution. ✅ passed · ❌ failed · — not reached (an earlier"
-  out "phase failed) · ⏳ no result yet (run in progress) · · not published for that architecture."
+  out "Each cell is install/execution, for jotta's stable and unstable package"
+  out "channels side by side (see \"What it checks\" for what unstable means)."
+  out "✅ passed · ❌ failed · — not reached (an earlier phase failed) · ⏳ no result"
+  out "yet (run in progress) · · not published for that architecture/channel."
   out "⚠️ next to an EOL date means it's already past that date as of today. Rows are"
-  out "sorted oldest-release-first; GitHub renders this as a static table (no JS allowed"
-  out "in READMEs), so there's no interactive re-sort — this fixed order is the useful one."
+  out "grouped by family, oldest-release-first within each group; GitHub renders this"
+  out "as a static table (no JS allowed in READMEs), so there's no interactive re-sort."
 
-  [ "$any" -eq 1 ] || return 0
-  [ "$worst" = pass ]
+  [ "$GRID_ANY" -eq 1 ] || return 0
+  [ "$GRID_WORST" = pass ]
 }
 
 # Per-check view: which individual checks failed, and where. Far more useful

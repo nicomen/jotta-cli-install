@@ -263,10 +263,7 @@ the target list in `matrix.json`.
 
 ### Adding a target
 
-Add an object to `matrix.json`, placed in `released` order (oldest first) —
-that's also the order the grid's rows and the Actions job list follow, and
-it's the axis this whole repo cares about: whether something old still works
-against a rotated key:
+Add an object to `matrix.json`:
 
 ```json
 {
@@ -275,18 +272,28 @@ against a rotated key:
   "distro": "Debian 14",
   "image": "debian:14",
   "family": "debian",
+  "group": "Debian / Ubuntu",
   "platform": "linux/amd64",
   "arch": "amd64",
   "runner": "ubuntu-24.04",
   "qemu": false,
-  "released": "2027-06"
+  "released": "2027-06",
+  "eol": "2032-06"
 }
 ```
 
-`released` is an approximate GA month (`"rolling"` for a rolling release like
-Tumbleweed, which always sorts last). It's cosmetic — nothing enforces the
-order — but keeping it means a glance at the grid answers "how far back does
-this still work" without cross-referencing anything else.
+`group` is the grid's bold section divider ("Debian / Ubuntu", "RHEL family
+(EL)", "Fedora", "SUSE" today) — sections are ordered by their earliest
+`released` date, and rows within a section by their own `released`, oldest
+first (`"rolling"` always sorts last within its section). `eol` gets a ⚠️ in
+the grid once it's in the past.
+
+Then add its unstable-channel twin — same fields, `id` suffixed `-unstable`,
+`distro` suffixed ` — jotta unstable channel`, plus `"deb_suite": "unstable"`
+(debian family) or `"rpm_path": "/redhat-unstable"` (rpm family). The grid
+pairs a base row with its twin by exactly these suffixes, rendering them as
+the stable/unstable columns of the same row rather than a second row — see
+"What it checks" for why that twin exists at all.
 
 Every target in the file runs on every trigger — there's no tier or subset to
 opt into. Set `qemu: true` (and leave `runner` as an amd64 runner) for any
