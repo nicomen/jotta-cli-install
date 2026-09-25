@@ -174,28 +174,51 @@ os_pretty_name() {
   ( . /etc/os-release 2>/dev/null && printf '%s\n' "${PRETTY_NAME:-unknown}" ) || printf 'unknown\n'
 }
 
-# A genuinely 32-bit x86 (i386/i686) rootfs runs *natively* under a 64-bit
-# x86_64 kernel -- unlike arm64/ppc64le/etc, x86 needs no QEMU for this. But
-# the kernel's default 64-bit "personality" means uname (and rpm's %_arch
-# macro, which derives from it) still reports x86_64, so dnf resolves new
+# True if we're a genuinely 32-bit x86 (i386/i686) rootfs still running
+# under the kernel's default 64-bit "personality" -- x86 needs no QEMU to
+# run 32-bit code natively (unlike arm64/ppc64le/etc), so uname still
+# reports x86_64 unless something has corrected the personality. Re-checked
+# by name rather than cached: after a successful linux32 re-exec (see
+# below) uname itself starts reporting i686, so calling this again later
+# correctly says "no longer mismatched" instead of needing separate state.
+is_32bit_rootfs_on_64bit_kernel() {
+  [ "$(uname -m)" = x86_64 ] || return 1
+  # ELF class byte (offset 4 in the header): 1 = 32-bit, 2 = 64-bit.
+  local class
+  class="$(od -An -tu1 -j4 -N1 /bin/sh 2>/dev/null | tr -d ' ')"
+  [ "$class" = 1 ]
+}
+
+# The mismatch in is_32bit_rootfs_on_64bit_kernel means rpm's %_arch macro
+# (which derives from uname) still says x86_64, so dnf resolves new
 # packages against the wrong basearch and grabs the 64-bit build from a repo
 # that publishes both. Found running for real: dnf pulled jotta-cli.x86_64
 # into an otherwise-genuine i686 AlmaLinux 9, which rpm's own transaction
 # test then correctly refused ("intended for a different architecture").
 # apt/dpkg are unaffected -- dpkg's arch comes from a build-time-baked
 # config file, not the kernel -- so this only matters for the RPM family.
-# Re-execs the whole script once under linux32 so everything downstream
-# (dnf, rpm, ensure_commands, ...) sees the corrected personality.
+#
+# Two layers, since neither alone was reliable enough on its own:
+#   1. Re-exec the whole script once under linux32, fixing uname itself
+#      (and everything that reads it) for the rest of the run -- but
+#      linux32 (util-linux) isn't installed by default on every image
+#      (found missing on AlmaLinux 10's, present on 9's and Tumbleweed's).
+#   2. dnf's own --forcearch flag, which needs no extra package at all --
+#      see dnf_forcearch_args(), used directly on the dnf/yum calls that
+#      touch jotta's repo. Layer 2 covers exactly the gap layer 1 leaves.
 maybe_reexec_for_32bit_rootfs() {
-  [ "$(uname -m)" = x86_64 ] || return 0
+  is_32bit_rootfs_on_64bit_kernel || return 0
   [ "${JOTTA_REEXECED_32BIT:-}" = 1 ] && return 0
   command -v linux32 >/dev/null 2>&1 || return 0
-  # ELF class byte (offset 4 in the header): 1 = 32-bit, 2 = 64-bit.
-  local class
-  class="$(od -An -tu1 -j4 -N1 /bin/sh 2>/dev/null | tr -d ' ')"
-  [ "$class" = 1 ] || return 0
   export JOTTA_REEXECED_32BIT=1
   exec linux32 "$0" "$@"
+}
+
+# Prints "--forcearch=i686" if dnf/yum still need to be told explicitly
+# (layer 1 above didn't run, or couldn't), otherwise nothing.
+dnf_forcearch_args() {
+  is_32bit_rootfs_on_64bit_kernel && printf -- '--forcearch=i686'
+  return 0
 }
 
 # Records os_version_id / os_support_end as notes (empty when /etc/os-release
@@ -242,6 +265,13 @@ keyring_with() { # keyring_with <key-file>
 # rpm architecture name for the current machine. rpm knows best; the uname
 # mapping is only a fallback for hosts without rpm.
 rpm_arch() {
+  # rpm's own %_arch is wrong on a 32-bit rootfs whose personality was never
+  # corrected (see is_32bit_rootfs_on_64bit_kernel) -- ask it directly first
+  # rather than trust rpm, which is exactly the value that was wrong.
+  if is_32bit_rootfs_on_64bit_kernel; then
+    printf 'i386\n'
+    return
+  fi
   if command -v rpm >/dev/null 2>&1; then
     rpm --eval '%{_arch}'
     return
@@ -324,6 +354,8 @@ apt_update_repo() { # apt_update_repo <list-name, without .list>
 pkg_arch() {
   if command -v dpkg >/dev/null 2>&1; then
     dpkg --print-architecture
+  elif is_32bit_rootfs_on_64bit_kernel; then
+    printf 'i686\n'   # same mismatch rpm_arch() corrects for -- see there
   elif command -v rpm >/dev/null 2>&1; then
     rpm --eval '%{_arch}'
   else

@@ -75,8 +75,8 @@ EOF
 repo_refresh() { # repo_refresh <repo-id>
   case "$PKG_MGR" in
     apt)    apt_update_repo "$1" ;;
-    dnf)    dnf -y --repo="$1" makecache ;;
-    yum)    yum -y --disablerepo='*' --enablerepo="$1" makecache ;;
+    dnf)    dnf -y $(dnf_forcearch_args) --repo="$1" makecache ;;
+    yum)    yum -y $(dnf_forcearch_args) --disablerepo='*' --enablerepo="$1" makecache ;;
     zypper) zypper --non-interactive refresh "$1" ;;
   esac
 }
@@ -86,7 +86,7 @@ repo_refresh() { # repo_refresh <repo-id>
 repo_install() {
   case "$PKG_MGR" in
     apt)    apt-get install -y --no-install-recommends "$JOTTA_PACKAGE" ;;
-    dnf|yum) "$PKG_MGR" -y install "$JOTTA_PACKAGE" ;;
+    dnf|yum) "$PKG_MGR" -y $(dnf_forcearch_args) install "$JOTTA_PACKAGE" ;;
     zypper) zypper --non-interactive install "$JOTTA_PACKAGE" ;;
   esac
 }
@@ -152,6 +152,15 @@ bootstrap() {
         useradd:shadow awk:gawk
       ;;
   esac
+
+  # The very first call to this (top of the script, before anything is
+  # installed) only succeeds on images that already ship linux32 -- found
+  # AlmaLinux 10's default image doesn't. su:util-linux is required above on
+  # every branch, so by now it's guaranteed present; try again. Re-exec
+  # restarts the whole script, so bootstrap() (and this install) runs a
+  # second time too, but ensure_commands is a no-op the second time --
+  # nothing new to install -- so the only cost is repeating it once.
+  maybe_reexec_for_32bit_rootfs
 }
 
 # Once a Debian release's free/public support ends (regular, then LTS — see
