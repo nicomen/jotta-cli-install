@@ -42,7 +42,7 @@ install work, end to end, and does `jotta-cli` actually run afterward.
 | **SUSE** |  |  |  |  |  |  |  |  |  |  |
 | <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Leap 15.6 | 2024‑06‑12 | ~~2026‑04‑30~~ | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
 | <img src="https://cdn.simpleicons.org/suse" width="16" height="16" valign="middle" alt=""> SLES 15 SP7 | 2025‑06‑17 | 2031‑07‑31 | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="not published for this architecture">·</span> | <span title="not published for this architecture">·</span> |
-| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | rolling | rolling | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> |
+| <img src="https://cdn.simpleicons.org/opensuse" width="16" height="16" valign="middle" alt=""> openSUSE Tumbleweed | rolling | rolling | <span title="failed">❌</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> | <span title="passed">✅</span> |
 
 stable/unstable are jotta's two package channels (see "What it checks"
 for what unstable means). The bold row under the header names each
@@ -58,12 +58,12 @@ READMEs), so there's no interactive re-sort.
 
 | Failing check | Legs |
 |---|---|
-| fatal error | debian-11-amd64-unstable, debian-11-amd64, debian-11-arm64-unstable, debian-11-arm64, debian-11-armhf-unstable, debian-11-armhf, debian-11-i386-unstable, debian-11-i386, ubuntu-devel-armhf-unstable, u |
+| fatal error | debian-11-amd64-unstable, debian-11-amd64, debian-11-arm64-unstable, debian-11-arm64, debian-11-armhf-unstable, debian-11-armhf, debian-11-i386-unstable, debian-11-i386, opensuse-tumbleweed-amd64, ubu |
 | installs with signature checking enabled | almalinux-10-i386-unstable, almalinux-10-i386 |
 | package is installed | almalinux-10-i386-unstable, almalinux-10-i386 |
 | repository configured to trust only that key | almalinux-8-amd64-unstable, almalinux-8-amd64, almalinux-8-arm64-unstable, almalinux-8-arm64, almalinux-8-i386-unstable, almalinux-8-i386, registry.access.redhat.com-ubi8-ubi-latest-amd64-unstable, re |
 
-<sub>2026-09-25 09:40 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/36118796546)</sub>
+<sub>2026-09-25 10:22 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/36122556621)</sub>
 
 <!-- STATUS:END -->
 
