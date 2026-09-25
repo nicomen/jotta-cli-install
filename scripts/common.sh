@@ -174,6 +174,30 @@ os_pretty_name() {
   ( . /etc/os-release 2>/dev/null && printf '%s\n' "${PRETTY_NAME:-unknown}" ) || printf 'unknown\n'
 }
 
+# A genuinely 32-bit x86 (i386/i686) rootfs runs *natively* under a 64-bit
+# x86_64 kernel -- unlike arm64/ppc64le/etc, x86 needs no QEMU for this. But
+# the kernel's default 64-bit "personality" means uname (and rpm's %_arch
+# macro, which derives from it) still reports x86_64, so dnf resolves new
+# packages against the wrong basearch and grabs the 64-bit build from a repo
+# that publishes both. Found running for real: dnf pulled jotta-cli.x86_64
+# into an otherwise-genuine i686 AlmaLinux 9, which rpm's own transaction
+# test then correctly refused ("intended for a different architecture").
+# apt/dpkg are unaffected -- dpkg's arch comes from a build-time-baked
+# config file, not the kernel -- so this only matters for the RPM family.
+# Re-execs the whole script once under linux32 so everything downstream
+# (dnf, rpm, ensure_commands, ...) sees the corrected personality.
+maybe_reexec_for_32bit_rootfs() {
+  [ "$(uname -m)" = x86_64 ] || return 0
+  [ "${JOTTA_REEXECED_32BIT:-}" = 1 ] && return 0
+  command -v linux32 >/dev/null 2>&1 || return 0
+  # ELF class byte (offset 4 in the header): 1 = 32-bit, 2 = 64-bit.
+  local class
+  class="$(od -An -tu1 -j4 -N1 /bin/sh 2>/dev/null | tr -d ' ')"
+  [ "$class" = 1 ] || return 0
+  export JOTTA_REEXECED_32BIT=1
+  exec linux32 "$0" "$@"
+}
+
 # Records os_version_id / os_support_end as notes (empty when /etc/os-release
 # doesn't carry them, which is most distros) so a "moving tag" leg like
 # fedora:latest -- which points at a different real release over time -- can

@@ -36,7 +36,16 @@ fi
 # podman has no default registry for short names; docker assumes docker.io.
 if [ "$RUNTIME" = podman ]; then
   case "$IMAGE" in
-    */*.*/*|localhost/*) ;;          # already fully qualified
+    localhost/*) ;;                  # explicit localhost registry
+    *.*/*|*:*/*) ;;                  # first segment has a dot/port -> real
+                                      # registry host (quay.io/..., registry.
+                                      # access.redhat.com/..., ...). The
+                                      # previous pattern (*/*.*/*) required
+                                      # the dot to fall *between* two
+                                      # slashes, which a bare "host.tld/..."
+                                      # reference never has -- found when
+                                      # quay.io/almalinuxorg/almalinux:9
+                                      # wrongly got "docker.io/" prepended.
     *)                  IMAGE="docker.io/${IMAGE}" ;;
   esac
 fi

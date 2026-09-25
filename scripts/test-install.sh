@@ -17,6 +17,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/common.sh
 . "$HERE/common.sh"
 
+# Must happen before anything else touches dnf/rpm -- see the comment on
+# the function itself (common.sh) for why.
+maybe_reexec_for_32bit_rootfs "$@"
+
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
