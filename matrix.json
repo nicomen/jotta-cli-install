@@ -1608,6 +1608,7 @@
       "arch": "armhf",
       "runner": "ubuntu-24.04",
       "qemu": true,
+      "docker_storage_vfs": true,
       "released": "rolling",
       "eol": "rolling",
       "group": "Debian / Ubuntu"
@@ -1652,6 +1653,7 @@
       "arch": "armhf",
       "runner": "ubuntu-24.04",
       "qemu": true,
+      "docker_storage_vfs": true,
       "released": "rolling",
       "eol": "rolling",
       "group": "Debian / Ubuntu",

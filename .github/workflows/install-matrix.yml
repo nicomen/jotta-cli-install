@@ -113,6 +113,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Switch Docker to the vfs storage driver
+        if: matrix.target.docker_storage_vfs
+        # Works around a real overlay2 + qemu-user bug: dpkg's per-package
+        # tmp.ci scratch dir fails to unlink cleanly under emulation on an
+        # overlay2 backing store ("rm command for cleanup subprocess failed
+        # ... Directory not empty"), reproduced 100% of the time locally with
+        # plain `apt-get install curl` on this image/platform, no jotta
+        # package involved. vfs has no copy-up/whiteout handling, so it
+        # doesn't hit the bug. Slower, but fine for a one-off CI leg.
+        run: |
+          echo '{"storage-driver":"vfs"}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
       - name: Install and verify jotta-cli
         env:
           IMAGE: ${{ matrix.target.image }}
