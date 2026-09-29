@@ -49,7 +49,7 @@ warn() { printf '  !! %s\n' "$*" >&2; }
 die()  { printf '  XX %s\n' "$*" >&2; record_result "fatal error" fail "$*"; exit 1; }
 
 # Collapse multi-line command output into one short line for the TSV report.
-_oneline() { tr '\n' ' ' | tr -s ' ' | cut -c1-400; }
+_oneline() { tr '\n\r' '  ' | tr -s ' ' | cut -c1-4000; }
 
 # ---------------------------------------------------------------------------
 # Result recording
