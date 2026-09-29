@@ -148,6 +148,13 @@ jobs:
           OUTDIR: ${{ github.workspace }}/results/${{ matrix.target.id }}
           CONTAINER_RUNTIME: ${{ matrix.target.podman_vfs && 'podman' || 'docker' }}
           CONTAINERS_STORAGE_CONF: ${{ matrix.target.podman_vfs && '/tmp/podman-vfs-storage.conf' || '' }}
+          # TEMPORARY, scoped to this one leg only: testing whether the
+          # tmp.ci dpkg bug is actually OpenSSL hitting an unemulated CPU
+          # feature under qemu-arm. Remove once confirmed or ruled out --
+          # OPENSSL_CONF=/dev/null could affect other checks on this leg
+          # (e.g. TLS to the repo), which is why it's this narrowly scoped.
+          OPENSSL_ia32cap: ${{ matrix.target.podman_vfs && '~0x200000200000000' || '' }}
+          OPENSSL_CONF: ${{ matrix.target.podman_vfs && '/dev/null' || '' }}
           # Per-target overrides for the two "jotta-cli unstable channel" legs
           # -- jotta's own pre-release package build, a separate axis from
           # which OS is running it. Every other leg falls back to the

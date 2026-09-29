@@ -72,6 +72,13 @@ while IFS='=' read -r var _; do
   env_args+=(-e "$var")
 done < <(printenv | grep '^JOTTA_' || true)
 
+# TEMPORARY: forward these two if set, to test a theory that the armhf
+# tmp.ci dpkg bug is caused by OpenSSL hitting an unemulated CPU feature
+# under qemu-arm. Remove once that theory is confirmed or ruled out.
+for v in OPENSSL_ia32cap OPENSSL_CONF; do
+  [ -n "${!v-}" ] && env_args+=(-e "$v")
+done
+
 exec timeout --signal=TERM --kill-after=60 "$TIMEOUT" \
   "$RUNTIME" run --rm \
     --platform "$PLATFORM" \
