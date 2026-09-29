@@ -113,18 +113,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Switch Docker to the vfs storage driver
-        if: matrix.target.docker_storage_vfs
-        # Works around a real overlay2 + qemu-user bug: dpkg's per-package
-        # tmp.ci scratch dir fails to unlink cleanly under emulation on an
-        # overlay2 backing store ("rm command for cleanup subprocess failed
-        # ... Directory not empty"), reproduced 100% of the time locally with
-        # plain `apt-get install curl` on this image/platform, no jotta
-        # package involved. vfs has no copy-up/whiteout handling, so it
-        # doesn't hit the bug. Slower, but fine for a one-off CI leg.
+      - name: Configure podman with a fresh vfs storage backend
+        if: matrix.target.podman_vfs
+        # Docker (on any storage driver -- overlay2 *and* vfs both verified
+        # to still fail) and podman's own default overlay storage all hit a
+        # real bug: apt/dpkg's "securely remove" cleanup of its per-package
+        # /var/lib/dpkg/tmp.ci scratch dir breaks under armhf QEMU emulation
+        # on an overlay-based backing store ("rm command for cleanup
+        # subprocess failed ... Directory not empty" / "unable to securely
+        # remove"). Reproduces 100% of the time with plain `apt-get install
+        # curl` on this image/platform, no jotta package involved. Rootless
+        # podman on a fresh vfs graphroot avoids it. run-target.sh always
+        # performs the actual qemu binfmt registration via docker (root),
+        # regardless of which engine runs the leg -- a rootless podman
+        # container doing that registration itself was found to leave the
+        # handler unusable for later rootless execs on the same host.
         run: |
-          echo '{"storage-driver":"vfs"}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
+          command -v podman >/dev/null 2>&1 || { sudo apt-get update -qq && sudo apt-get install -y -qq podman; }
+          mkdir -p /tmp/podman-vfs-graphroot
+          cat > /tmp/podman-vfs-storage.conf <<'EOF'
+          [storage]
+          driver = "vfs"
+          graphroot = "/tmp/podman-vfs-graphroot"
+          EOF
+          driver="$(CONTAINERS_STORAGE_CONF=/tmp/podman-vfs-storage.conf podman info --format '{{.Store.GraphDriverName}}')"
+          echo "podman storage driver: $driver"
+          [ "$driver" = vfs ] || { echo "::error::podman did not switch to the vfs storage driver (got: $driver)"; exit 1; }
 
       - name: Install and verify jotta-cli
         env:
@@ -132,6 +146,8 @@ jobs:
           PLATFORM: ${{ matrix.target.platform }}
           NEEDS_QEMU: ${{ matrix.target.qemu && '1' || '0' }}
           OUTDIR: ${{ github.workspace }}/results/${{ matrix.target.id }}
+          CONTAINER_RUNTIME: ${{ matrix.target.podman_vfs && 'podman' || 'docker' }}
+          CONTAINERS_STORAGE_CONF: ${{ matrix.target.podman_vfs && '/tmp/podman-vfs-storage.conf' || '' }}
           # Per-target overrides for the two "jotta-cli unstable channel" legs
           # -- jotta's own pre-release package build, a separate axis from
           # which OS is running it. Every other leg falls back to the

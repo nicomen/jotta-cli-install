@@ -28,16 +28,11 @@ TIMEOUT="${TIMEOUT:-1800}"
 
 mkdir -p "$OUTDIR"
 
-if [ "$NEEDS_QEMU" = "1" ]; then
-  info "Installing binfmt handlers for ${PLATFORM}"
-  "$RUNTIME" run --rm --privileged tonistiigi/binfmt:latest --install all >/dev/null
-fi
-
 # podman has no default registry for short names; docker assumes docker.io.
-if [ "$RUNTIME" = podman ]; then
-  case "$IMAGE" in
-    localhost/*) ;;                  # explicit localhost registry
-    *.*/*|*:*/*) ;;                  # first segment has a dot/port -> real
+qualify_for_podman() {
+  case "$1" in
+    localhost/*) printf '%s' "$1" ;;  # explicit localhost registry
+    *.*/*|*:*/*) printf '%s' "$1" ;;  # first segment has a dot/port -> real
                                       # registry host (quay.io/..., registry.
                                       # access.redhat.com/..., ...). The
                                       # previous pattern (*/*.*/*) required
@@ -46,8 +41,24 @@ if [ "$RUNTIME" = podman ]; then
                                       # reference never has -- found when
                                       # quay.io/almalinuxorg/almalinux:9
                                       # wrongly got "docker.io/" prepended.
-    *)                  IMAGE="docker.io/${IMAGE}" ;;
+    *)           printf 'docker.io/%s' "$1" ;;
   esac
+}
+
+if [ "$RUNTIME" = podman ]; then
+  IMAGE="$(qualify_for_podman "$IMAGE")"
+fi
+
+if [ "$NEEDS_QEMU" = "1" ]; then
+  info "Installing binfmt handlers for ${PLATFORM}"
+  # Always registered via docker, even when $RUNTIME (the engine that runs
+  # the actual leg) is podman: a rootless-podman --privileged container
+  # doing its own binfmt_misc registration was found to leave the qemu
+  # handler unusable by later rootless execs on the same host ("exec
+  # format error"), while a plain root docker registration works reliably
+  # for every engine that consumes it afterwards. binfmt_misc is a kernel-
+  # wide facility, not tied to whichever engine registered it.
+  docker run --rm --privileged tonistiigi/binfmt:latest --install all >/dev/null
 fi
 
 info "Running ${IMAGE} (${PLATFORM})"
