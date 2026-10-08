@@ -165,10 +165,14 @@ bootstrap() {
 
 # Once a Debian release's free/public support ends (regular, then LTS — see
 # https://wiki.debian.org/LTS; anything after that is paid Extended LTS on
-# separate infrastructure this doesn't have access to), deb.debian.org drops
-# it entirely and only archive.debian.org still serves the main suite.
-# "eol" here means "off deb.debian.org," not "unsupported" -- ELTS may well
-# still cover it.
+# separate infrastructure this doesn't have access to), both live mirrors
+# stop being usable: deb.debian.org drops the release entirely, and
+# security.debian.org prunes the pool files its own index still advertises
+# (every .deb it lists 404s). archive.debian.org only ever carries main
+# (never debian-security), and its final main snapshot conflicts with the
+# newer security-channel package versions already baked into the docker
+# image (found: gnupg from archived main hard-depends on an older gpgv than
+# the preinstalled one, and no repo offers any other gpgv — unresolvable).
 use_debian_archive_if_eol() {
   local id version
   # shellcheck disable=SC1091
@@ -178,14 +182,34 @@ use_debian_archive_if_eol() {
   case "$version" in ''|*[!0-9]*) return 0 ;; esac
   [ "$version" -le "${JOTTA_DEBIAN_EOL_BEFORE:-11}" ] || return 0
 
-  note "apt sources" "Debian ${version} is off deb.debian.org — main via archive.debian.org, security stays on security.debian.org"
-  # archive.debian.org never mirrored debian-security at all; that suite stays
-  # on security.debian.org even after the release itself moves to archive.
-  sed -i -e 's|[a-z.]*\.debian\.org/debian-security|security.debian.org/debian-security|g' \
-         -e 's|deb\.debian\.org/debian|archive.debian.org/debian|g' \
-         /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null
-  # Archived Release files are long past their Valid-Until date.
+  # Already applied. bootstrap() runs twice on the 32-bit legs (the linux32
+  # re-exec restarts the script), and a second pass would see no commented
+  # snapshot lines left, take the fallback branch, and delete the snapshot
+  # security entry the first pass just enabled.
+  [ -e /etc/apt/apt.conf.d/99jotta-archive ] && return 0
+
+  # Archived/snapshot Release files are long past their Valid-Until date.
   echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99jotta-archive
+
+  # Docker's debian images are built from a snapshot.debian.org timestamp and
+  # ship that exact source list commented out next to the live one. The
+  # snapshot pins main+security+updates to one mutually consistent moment
+  # (and snapshot.debian.org never prunes), so prefer it over any mix of
+  # live servers.
+  if grep -q '^# deb http://snapshot\.debian\.org' /etc/apt/sources.list 2>/dev/null; then
+    sed -i -e 's|^# deb http://snapshot\.debian\.org|deb http://snapshot.debian.org|' \
+           -e '/^deb http:\/\/deb\.debian\.org/d' \
+           /etc/apt/sources.list
+    note "apt sources" "Debian ${version} is past free support — using the image's own snapshot.debian.org pins"
+    return 0
+  fi
+
+  # No snapshot lines in the image: best effort via archive.debian.org for
+  # main, dropping the security suite (its live pool is pruned after EOL).
+  note "apt sources" "Debian ${version} is past free support — main via archive.debian.org, security suite dropped"
+  sed -i -e 's|deb\.debian\.org/debian|archive.debian.org/debian|g' \
+         -e '/debian-security/d' \
+         /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null
   return 0
 }
 

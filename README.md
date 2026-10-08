@@ -171,18 +171,25 @@ Notes from actually running this:
   CentOS 8) cannot verify this repository. openSUSE Leap 15.6 passes despite
   also shipping 4.14.x, because SUSE backported the support. Both targets are
   in the matrix and both are expected to be red until that is addressed.
-- **Debian 11 is not EOL — it's mid-transition, which is worse for testing.**
-  Per [Debian's own LTS schedule](https://wiki.debian.org/LTS), free/public
-  support (regular, then LTS) ran until 2026-08-31; after that it moves to
-  Freexian's commercial Extended LTS (through 2031), on separate
-  subscription-only infrastructure this test has no access to and a typical
-  end user wouldn't either. The leg fails because the *public* mirrors this
-  test actually uses are exactly what just lost coverage: `deb.debian.org`
-  drops the release entirely (main moves to `archive.debian.org`), while
-  `security.debian.org` keeps serving `bullseye-security`'s index but, as of
-  writing, that index advertises a `gnupg2` update whose `.deb` 404s on
-  `security.debian.org` itself — a real gap in Debian's own infrastructure at
-  the moment of transition, not a sign the release has been dead for years.
+- **jotta-cli's `.deb` cannot be installed on Debian 11: it uses zstd
+  compression.** `dpkg-deb: error: archive … uses unknown compression for
+  member 'control.tar.zst'` — Debian 11 ships dpkg 1.20.x, and dpkg only
+  learned zstd in 1.21.18 (Debian 12). Anyone on bullseye following the
+  documented install steps hits exactly this, after the repository and its
+  signature verify fine. Same class of finding as the ed25519/rpm story
+  above: the package format is ahead of what the oldest supported-ish
+  consumers can read. (Ubuntu is unaffected — its dpkg has carried zstd
+  support since well before 22.04.)
+- **Debian 11's own mirrors need care now that free support ended
+  (2026-08-31, per [Debian's LTS schedule](https://wiki.debian.org/LTS)).**
+  `deb.debian.org` drops the release, and `security.debian.org` prunes pool
+  files its index still advertises (every `.deb` it lists 404s), while
+  `archive.debian.org`'s final main snapshot conflicts with the newer
+  security-channel packages already baked into the docker image. The test
+  instead switches the container to the `snapshot.debian.org` pins the
+  image itself ships (commented out) — one mutually consistent, never-pruned
+  timestamp for main+security+updates — so the leg tests jotta's repo, not
+  Debian's mirror teardown.
 - The ed25519 key currently carries **no expiry**, so the expiry check is a
   no-op until that changes.
 - **`dnf5` exits 0 from `makecache` even when metadata signature verification
