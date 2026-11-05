@@ -65,7 +65,7 @@ READMEs), so there's no interactive re-sort.
 | package is installed | aur, debian-11-amd64-unstable, debian-11-amd64 |
 | repository configured to trust only that key | almalinux-8-amd64-unstable, almalinux-8-amd64, almalinux-8-arm64-unstable, almalinux-8-arm64, almalinux-8-i386-unstable, almalinux-8-i386, registry.access.redhat.com-ubi8-ubi-latest-amd64-unstable, re |
 
-<sub>2026-11-04 13:08 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/41833854018)</sub>
+<sub>2026-11-05 13:20 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/42033352074)</sub>
 
 <!-- STATUS:END -->
 
