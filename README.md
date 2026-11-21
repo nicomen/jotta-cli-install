@@ -62,10 +62,10 @@ READMEs), so there's no interactive re-sort.
 |---|---|
 | fatal error | ubuntu-devel-armhf-unstable, ubuntu-devel-armhf |
 | installs with signature checking enabled | debian-11-amd64-unstable, debian-11-amd64, debian-11-arm64-unstable, debian-11-arm64, debian-11-armhf-unstable, debian-11-armhf, debian-11-i386-unstable, debian-11-i386 |
-| package is installed | debian-11-amd64-unstable, debian-11-amd64, debian-11-arm64-unstable, debian-11-arm64, debian-11-armhf-unstable, debian-11-armhf, debian-11-i386-unstable, debian-11-i386 |
+| package is installed | aur, debian-11-amd64-unstable, debian-11-amd64, debian-11-arm64-unstable, debian-11-arm64, debian-11-armhf-unstable, debian-11-armhf, debian-11-i386-unstable, debian-11-i386 |
 | repository configured to trust only that key | almalinux-8-amd64-unstable, almalinux-8-amd64, almalinux-8-arm64-unstable, almalinux-8-arm64, almalinux-8-i386-unstable, almalinux-8-i386, registry.access.redhat.com-ubi8-ubi-latest-amd64-unstable, re |
 
-<sub>2026-11-20 14:07 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/44749102986)</sub>
+<sub>2026-11-21 13:35 UTC · published version `0.17.176206` · signing key `DD0330E486A55840D37BDE77068CACA1BBF96E71` · [run](https://github.com/nicomen/jotta-cli-install/actions/runs/44908873405)</sub>
 
 <!-- STATUS:END -->
 
